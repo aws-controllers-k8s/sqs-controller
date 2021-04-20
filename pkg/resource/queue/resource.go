@@ -16,15 +16,15 @@
 package queue
 
 import (
-	ackv1alpha1 "github.com/aws/aws-controllers-k8s/apis/core/v1alpha1"
-	acktypes "github.com/aws/aws-controllers-k8s/pkg/types"
+	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
+	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8srt "k8s.io/apimachinery/pkg/runtime"
 
 	svcapitypes "github.com/aws-controllers-k8s/sqs-controller/apis/v1alpha1"
 )
 
-// resource implements the `aws-service-operator-k8s/pkg/types.AWSResource`
+// resource implements the `aws-controller-k8s/runtime/pkg/types.AWSResource`
 // interface
 type resource struct {
 	// The Kubernetes-native CR representing the resource

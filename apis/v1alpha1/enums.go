@@ -55,4 +55,6 @@ const (
 	QueueAttributeName_ContentBasedDeduplication             QueueAttributeName = "ContentBasedDeduplication"
 	QueueAttributeName_KmsMasterKeyId                        QueueAttributeName = "KmsMasterKeyId"
 	QueueAttributeName_KmsDataKeyReusePeriodSeconds          QueueAttributeName = "KmsDataKeyReusePeriodSeconds"
+	QueueAttributeName_DeduplicationScope                    QueueAttributeName = "DeduplicationScope"
+	QueueAttributeName_FifoThroughputLimit                   QueueAttributeName = "FifoThroughputLimit"
 )

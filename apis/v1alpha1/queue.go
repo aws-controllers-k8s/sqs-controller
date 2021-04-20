@@ -16,15 +16,50 @@
 package v1alpha1
 
 import (
-	ackv1alpha1 "github.com/aws/aws-controllers-k8s/apis/core/v1alpha1"
+	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // QueueSpec defines the desired state of Queue
 type QueueSpec struct {
+	// The name of the new queue. The following limits apply to this name:
+	//
+	//    * A queue name can have up to 80 characters.
+	//
+	//    * Valid values: alphanumeric characters, hyphens (-), and underscores
+	//    (_).
+	//
+	//    * A FIFO queue name must end with the .fifo suffix.
+	//
+	// Queue URLs and names are case-sensitive.
 	// +kubebuilder:validation:Required
-	QueueName *string            `json:"queueName"`
-	Tags      map[string]*string `json:"tags,omitempty"`
+	QueueName *string `json:"queueName"`
+	// Add cost allocation tags to the specified Amazon SQS queue. For an overview,
+	// see Tagging Your Amazon SQS Queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-queue-tags.html)
+	// in the Amazon Simple Queue Service Developer Guide.
+	//
+	// When you use queue tags, keep the following guidelines in mind:
+	//
+	//    * Adding more than 50 tags to a queue isn't recommended.
+	//
+	//    * Tags don't have any semantic meaning. Amazon SQS interprets tags as
+	//    character strings.
+	//
+	//    * Tags are case-sensitive.
+	//
+	//    * A new tag with a key identical to that of an existing tag overwrites
+	//    the existing tag.
+	//
+	// For a full list of tag restrictions, see Limits Related to Queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-limits.html#limits-queues)
+	// in the Amazon Simple Queue Service Developer Guide.
+	//
+	// To be able to tag a queue on creation, you must have the sqs:CreateQueue
+	// and sqs:TagQueue permissions.
+	//
+	// Cross-account permissions don't apply to this action. For more information,
+	// see Grant cross-account permissions to a role and a user name (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
+	// in the Amazon Simple Queue Service Developer Guide.
+	Tags map[string]*string `json:"tags,omitempty"`
 }
 
 // QueueStatus defines the observed state of Queue
@@ -38,7 +73,8 @@ type QueueStatus struct {
 	// the various terminal states of the CR and its backend AWS service API
 	// resource
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
-	QueueURL   *string                  `json:"queueURL,omitempty"`
+	// The URL of the created Amazon SQS queue.
+	QueueURL *string `json:"queueURL,omitempty"`
 }
 
 // Queue is the Schema for the Queues API
