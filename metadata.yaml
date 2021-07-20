@@ -1,0 +1,8 @@
+service:
+  full_name: "Amazon Simple Queue Service"
+  short_name: "SQS"
+  link: "https://aws.amazon.com/sqs/"
+  documentation: "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html"
+api_versions:
+  - api_version: v1alpha1
+    status: available
