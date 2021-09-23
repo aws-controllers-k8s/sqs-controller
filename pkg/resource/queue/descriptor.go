@@ -16,6 +16,7 @@
 package queue
 
 import (
+	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -67,16 +68,6 @@ func (d *resourceDescriptor) ResourceFromRuntimeObject(
 // one `AWSResource` and another.
 func (d *resourceDescriptor) Delta(a, b acktypes.AWSResource) *ackcompare.Delta {
 	return newResourceDelta(a.(*resource), b.(*resource))
-}
-
-// UpdateCRStatus accepts an AWSResource object and changes the Status
-// sub-object of the AWSResource's Kubernetes custom resource (CR) and
-// returns whether any changes were made
-func (d *resourceDescriptor) UpdateCRStatus(
-	res acktypes.AWSResource,
-) (bool, error) {
-	updated := true
-	return updated, nil
 }
 
 // IsManaged returns true if the supplied AWSResource is under the management
@@ -141,4 +132,22 @@ func (d *resourceDescriptor) MarkUnmanaged(
 		panic("nil RuntimeMetaObject in AWSResource")
 	}
 	k8sctrlutil.RemoveFinalizer(obj, finalizerString)
+}
+
+// MarkAdopted places descriptors on the custom resource that indicate the
+// resource was not created from within ACK.
+func (d *resourceDescriptor) MarkAdopted(
+	res acktypes.AWSResource,
+) {
+	obj := res.RuntimeMetaObject()
+	if obj == nil {
+		// Should not happen. If it does, there is a bug in the code
+		panic("nil RuntimeMetaObject in AWSResource")
+	}
+	curr := obj.GetAnnotations()
+	if curr == nil {
+		curr = make(map[string]string)
+	}
+	curr[ackv1alpha1.AnnotationAdopted] = "true"
+	obj.SetAnnotations(curr)
 }

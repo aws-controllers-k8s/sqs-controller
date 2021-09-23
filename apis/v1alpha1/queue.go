@@ -20,7 +20,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// QueueSpec defines the desired state of Queue
+// QueueSpec defines the desired state of Queue.
 type QueueSpec struct {
 	// The name of the new queue. The following limits apply to this name:
 	//
@@ -67,13 +67,16 @@ type QueueStatus struct {
 	// All CRs managed by ACK have a common `Status.ACKResourceMetadata` member
 	// that is used to contain resource sync state, account ownership,
 	// constructed ARN for the resource
+	// +kubebuilder:validation:Optional
 	ACKResourceMetadata *ackv1alpha1.ResourceMetadata `json:"ackResourceMetadata"`
 	// All CRS managed by ACK have a common `Status.Conditions` member that
 	// contains a collection of `ackv1alpha1.Condition` objects that describe
 	// the various terminal states of the CR and its backend AWS service API
 	// resource
+	// +kubebuilder:validation:Optional
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
 	// The URL of the created Amazon SQS queue.
+	// +kubebuilder:validation:Optional
 	QueueURL *string `json:"queueURL,omitempty"`
 }
 
