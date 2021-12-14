@@ -1,0 +1,36 @@
+---
+annotations:
+  capabilityLevel: Basic Install
+  shortDescription: AWS SQS controller is a service controller for managing SQS resources
+    in Kubernetes
+displayName: AWS Controllers for Kubernetes - Amazon SQS
+description: |-
+  Manage Simple Queue Service (SQS) resources in AWS from within your Kubernetes cluster.
+
+
+  **About Amazon SQS**
+
+
+  Amazon Simple Queue Service (Amazon SQS) offers a secure, durable, and available hosted queue that lets you integrate and decouple distributed software systems and components. Amazon SQS offers common constructs such as [dead-letter queues](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html) and [cost allocation tags](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-queue-tags.html). It provides a generic web services API that you can access using any programming language that the AWS SDK supports.
+
+
+  **About the AWS Controllers for Kubernetes**
+
+
+  This controller is a component of the [AWS Controller for Kubernetes](https://github.com/aws/aws-controllers-k8s)
+  project. This project is currently in **developer preview**.
+
+
+  **Pre-Installation Steps**
+
+
+  Please follow the following link: [Red Hat OpenShift](https://aws-controllers-k8s.github.io/community/docs/user-docs/openshift/)
+samples:
+- kind: Queue
+  spec: '{}'
+maintainers:
+- name: "sqs maintainer team"
+  email: "ack-maintainers@amazon.com"
+links:
+- name: Amazon SQS Developer Resources
+  url: https://aws.amazon.com/sqs/resources/
