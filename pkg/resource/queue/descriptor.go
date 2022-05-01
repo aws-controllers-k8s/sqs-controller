@@ -16,10 +16,11 @@
 package queue
 
 import (
+	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8sapirt "k8s.io/apimachinery/pkg/runtime"
+	rtclient "sigs.k8s.io/controller-runtime/pkg/client"
 	k8sctrlutil "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	svcapitypes "github.com/aws-controllers-k8s/sqs-controller/apis/v1alpha1"
@@ -30,7 +31,8 @@ const (
 )
 
 var (
-	resourceGK = metav1.GroupKind{
+	GroupVersionResource = svcapitypes.GroupVersion.WithResource("queues")
+	GroupKind            = metav1.GroupKind{
 		Group: "sqs.services.k8s.aws",
 		Kind:  "Queue",
 	}
@@ -44,19 +46,19 @@ type resourceDescriptor struct {
 // GroupKind returns a Kubernetes metav1.GroupKind struct that describes the
 // API Group and Kind of CRs described by the descriptor
 func (d *resourceDescriptor) GroupKind() *metav1.GroupKind {
-	return &resourceGK
+	return &GroupKind
 }
 
 // EmptyRuntimeObject returns an empty object prototype that may be used in
 // apimachinery and k8s client operations
-func (d *resourceDescriptor) EmptyRuntimeObject() k8sapirt.Object {
+func (d *resourceDescriptor) EmptyRuntimeObject() rtclient.Object {
 	return &svcapitypes.Queue{}
 }
 
 // ResourceFromRuntimeObject returns an AWSResource that has been initialized
 // with the supplied runtime.Object
 func (d *resourceDescriptor) ResourceFromRuntimeObject(
-	obj k8sapirt.Object,
+	obj rtclient.Object,
 ) acktypes.AWSResource {
 	return &resource{
 		ko: obj.(*svcapitypes.Queue),
@@ -69,16 +71,6 @@ func (d *resourceDescriptor) Delta(a, b acktypes.AWSResource) *ackcompare.Delta 
 	return newResourceDelta(a.(*resource), b.(*resource))
 }
 
-// UpdateCRStatus accepts an AWSResource object and changes the Status
-// sub-object of the AWSResource's Kubernetes custom resource (CR) and
-// returns whether any changes were made
-func (d *resourceDescriptor) UpdateCRStatus(
-	res acktypes.AWSResource,
-) (bool, error) {
-	updated := true
-	return updated, nil
-}
-
 // IsManaged returns true if the supplied AWSResource is under the management
 // of an ACK service controller. What this means in practice is that the
 // underlying custom resource (CR) in the AWSResource has had a
@@ -86,7 +78,7 @@ func (d *resourceDescriptor) UpdateCRStatus(
 func (d *resourceDescriptor) IsManaged(
 	res acktypes.AWSResource,
 ) bool {
-	obj := res.RuntimeMetaObject()
+	obj := res.RuntimeObject()
 	if obj == nil {
 		// Should not happen. If it does, there is a bug in the code
 		panic("nil RuntimeMetaObject in AWSResource")
@@ -101,7 +93,7 @@ func (d *resourceDescriptor) IsManaged(
 
 // Remove once https://github.com/kubernetes-sigs/controller-runtime/issues/994
 // is fixed.
-func containsFinalizer(obj acktypes.RuntimeMetaObject, finalizer string) bool {
+func containsFinalizer(obj rtclient.Object, finalizer string) bool {
 	f := obj.GetFinalizers()
 	for _, e := range f {
 		if e == finalizer {
@@ -120,7 +112,7 @@ func containsFinalizer(obj acktypes.RuntimeMetaObject, finalizer string) bool {
 func (d *resourceDescriptor) MarkManaged(
 	res acktypes.AWSResource,
 ) {
-	obj := res.RuntimeMetaObject()
+	obj := res.RuntimeObject()
 	if obj == nil {
 		// Should not happen. If it does, there is a bug in the code
 		panic("nil RuntimeMetaObject in AWSResource")
@@ -135,10 +127,28 @@ func (d *resourceDescriptor) MarkManaged(
 func (d *resourceDescriptor) MarkUnmanaged(
 	res acktypes.AWSResource,
 ) {
-	obj := res.RuntimeMetaObject()
+	obj := res.RuntimeObject()
 	if obj == nil {
 		// Should not happen. If it does, there is a bug in the code
 		panic("nil RuntimeMetaObject in AWSResource")
 	}
 	k8sctrlutil.RemoveFinalizer(obj, finalizerString)
+}
+
+// MarkAdopted places descriptors on the custom resource that indicate the
+// resource was not created from within ACK.
+func (d *resourceDescriptor) MarkAdopted(
+	res acktypes.AWSResource,
+) {
+	obj := res.RuntimeObject()
+	if obj == nil {
+		// Should not happen. If it does, there is a bug in the code
+		panic("nil RuntimeObject in AWSResource")
+	}
+	curr := obj.GetAnnotations()
+	if curr == nil {
+		curr = make(map[string]string)
+	}
+	curr[ackv1alpha1.AnnotationAdopted] = "true"
+	obj.SetAnnotations(curr)
 }

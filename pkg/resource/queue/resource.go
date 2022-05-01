@@ -17,11 +17,17 @@ package queue
 
 import (
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
+	ackerrors "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8srt "k8s.io/apimachinery/pkg/runtime"
+	rtclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	svcapitypes "github.com/aws-controllers-k8s/sqs-controller/apis/v1alpha1"
+)
+
+// Hack to avoid import errors during build...
+var (
+	_ = &ackerrors.MissingNameIdentifier
 )
 
 // resource implements the `aws-controller-k8s/runtime/pkg/types.AWSResource`
@@ -46,24 +52,44 @@ func (r *resource) IsBeingDeleted() bool {
 
 // RuntimeObject returns the Kubernetes apimachinery/runtime representation of
 // the AWSResource
-func (r *resource) RuntimeObject() k8srt.Object {
+func (r *resource) RuntimeObject() rtclient.Object {
 	return r.ko
 }
 
 // MetaObject returns the Kubernetes apimachinery/apis/meta/v1.Object
 // representation of the AWSResource
 func (r *resource) MetaObject() metav1.Object {
-	return r.ko
-}
-
-// RuntimeMetaObject returns an object that implements both the Kubernetes
-// apimachinery/runtime.Object and the Kubernetes
-// apimachinery/apis/meta/v1.Object interfaces
-func (r *resource) RuntimeMetaObject() acktypes.RuntimeMetaObject {
-	return r.ko
+	return r.ko.GetObjectMeta()
 }
 
 // Conditions returns the ACK Conditions collection for the AWSResource
 func (r *resource) Conditions() []*ackv1alpha1.Condition {
 	return r.ko.Status.Conditions
+}
+
+// ReplaceConditions sets the Conditions status field for the resource
+func (r *resource) ReplaceConditions(conditions []*ackv1alpha1.Condition) {
+	r.ko.Status.Conditions = conditions
+}
+
+// SetObjectMeta sets the ObjectMeta field for the resource
+func (r *resource) SetObjectMeta(meta metav1.ObjectMeta) {
+	r.ko.ObjectMeta = meta
+}
+
+// SetStatus will set the Status field for the resource
+func (r *resource) SetStatus(desired acktypes.AWSResource) {
+	r.ko.Status = desired.(*resource).ko.Status
+}
+
+// SetIdentifiers sets the Spec or Status field that is referenced as the unique
+// resource identifier
+func (r *resource) SetIdentifiers(identifier *ackv1alpha1.AWSIdentifiers) error {
+	return nil
+}
+
+// DeepCopy will return a copy of the resource
+func (r *resource) DeepCopy() acktypes.AWSResource {
+	koCopy := r.ko.DeepCopy()
+	return &resource{koCopy}
 }

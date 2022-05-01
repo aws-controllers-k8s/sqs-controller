@@ -20,23 +20,35 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// QueueSpec defines the desired state of Queue
+// QueueSpec defines the desired state of Queue.
 type QueueSpec struct {
-	// The name of the new queue. The following limits apply to this name:
-	//
-	//    * A queue name can have up to 80 characters.
-	//
-	//    * Valid values: alphanumeric characters, hyphens (-), and underscores
-	//    (_).
-	//
-	//    * A FIFO queue name must end with the .fifo suffix.
-	//
-	// Queue URLs and names are case-sensitive.
+	ContentBasedDeduplication *string `json:"contentBasedDeduplication,omitempty"`
+
+	DelaySeconds *string `json:"delaySeconds,omitempty"`
+
+	FifoQueue *string `json:"fifoQueue,omitempty"`
+
+	KMSDataKeyReusePeriodSeconds *string `json:"kmsDataKeyReusePeriodSeconds,omitempty"`
+
+	KMSMasterKeyID *string `json:"kmsMasterKeyID,omitempty"`
+
+	MaximumMessageSize *string `json:"maximumMessageSize,omitempty"`
+
+	MessageRetentionPeriod *string `json:"messageRetentionPeriod,omitempty"`
+
+	Policy *string `json:"policy,omitempty"`
+
+	QueueARN *string `json:"queueARN,omitempty"`
+
 	// +kubebuilder:validation:Required
 	QueueName *string `json:"queueName"`
+
+	ReceiveMessageWaitTimeSeconds *string `json:"receiveMessageWaitTimeSeconds,omitempty"`
+
+	RedrivePolicy *string `json:"redrivePolicy,omitempty"`
 	// Add cost allocation tags to the specified Amazon SQS queue. For an overview,
 	// see Tagging Your Amazon SQS Queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-queue-tags.html)
-	// in the Amazon Simple Queue Service Developer Guide.
+	// in the Amazon SQS Developer Guide.
 	//
 	// When you use queue tags, keep the following guidelines in mind:
 	//
@@ -50,16 +62,18 @@ type QueueSpec struct {
 	//    * A new tag with a key identical to that of an existing tag overwrites
 	//    the existing tag.
 	//
-	// For a full list of tag restrictions, see Limits Related to Queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-limits.html#limits-queues)
-	// in the Amazon Simple Queue Service Developer Guide.
+	// For a full list of tag restrictions, see Quotas related to queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-limits.html#limits-queues)
+	// in the Amazon SQS Developer Guide.
 	//
 	// To be able to tag a queue on creation, you must have the sqs:CreateQueue
 	// and sqs:TagQueue permissions.
 	//
 	// Cross-account permissions don't apply to this action. For more information,
 	// see Grant cross-account permissions to a role and a user name (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
-	// in the Amazon Simple Queue Service Developer Guide.
+	// in the Amazon SQS Developer Guide.
 	Tags map[string]*string `json:"tags,omitempty"`
+
+	VisibilityTimeout *string `json:"visibilityTimeout,omitempty"`
 }
 
 // QueueStatus defines the observed state of Queue
@@ -67,13 +81,16 @@ type QueueStatus struct {
 	// All CRs managed by ACK have a common `Status.ACKResourceMetadata` member
 	// that is used to contain resource sync state, account ownership,
 	// constructed ARN for the resource
+	// +kubebuilder:validation:Optional
 	ACKResourceMetadata *ackv1alpha1.ResourceMetadata `json:"ackResourceMetadata"`
 	// All CRS managed by ACK have a common `Status.Conditions` member that
 	// contains a collection of `ackv1alpha1.Condition` objects that describe
 	// the various terminal states of the CR and its backend AWS service API
 	// resource
+	// +kubebuilder:validation:Optional
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
 	// The URL of the created Amazon SQS queue.
+	// +kubebuilder:validation:Optional
 	QueueURL *string `json:"queueURL,omitempty"`
 }
 

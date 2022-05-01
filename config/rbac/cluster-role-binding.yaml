@@ -8,5 +8,5 @@ roleRef:
   name: ack-sqs-controller
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: ack-sqs-controller
   namespace: ack-system
