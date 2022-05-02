@@ -3,8 +3,8 @@
 # Declare variables to be passed into your templates.
 
 image:
-  repository: aws-controllers-k8s
-  tag: sqs-6eaed1b
+  repository: public.ecr.aws/aws-controllers-k8s/sqs-controller
+  tag: v0.0.0-non-release-version
   pullPolicy: IfNotPresent
   pullSecrets: []
 
@@ -48,13 +48,13 @@ resources:
 
 aws:
   # If specified, use the AWS region for AWS API calls
-  region: "ap-southeast-2"
+  region: ""
   endpoint_url: ""
 
 # log level for the controller
 log:
-  enable_development_logging: true
-  level: debug
+  enable_development_logging: false
+  level: info
 
 # Set to "namespace" to install the controller in a namespaced scope, will only
 # watch for object creation in the namespace. By default installScope is
