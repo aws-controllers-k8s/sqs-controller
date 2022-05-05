@@ -44,11 +44,16 @@ resources:
       QueueArn:
         is_attribute: true
         is_arn: true
+        is_read_only: true
         type: string
       QueueName:
         is_required: true
+        is_immutable: true
         type: string
       Tags:
         compare:
           is_ignored: true
+      QueueUrl:
+        is_readonly: true
+        is_primary_key: true
       

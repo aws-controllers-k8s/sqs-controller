@@ -189,9 +189,6 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.Policy != nil {
 		attrMap["Policy"] = r.ko.Spec.Policy
 	}
-	if r.ko.Spec.QueueARN != nil {
-		attrMap["QueueArn"] = r.ko.Spec.QueueARN
-	}
 	if r.ko.Spec.ReceiveMessageWaitTimeSeconds != nil {
 		attrMap["ReceiveMessageWaitTimeSeconds"] = r.ko.Spec.ReceiveMessageWaitTimeSeconds
 	}
@@ -301,9 +298,6 @@ func (rm *resourceManager) newSetAttributesRequestPayload(
 	}
 	if r.ko.Spec.Policy != nil {
 		attrMap["Policy"] = r.ko.Spec.Policy
-	}
-	if r.ko.Spec.QueueARN != nil {
-		attrMap["QueueArn"] = r.ko.Spec.QueueARN
 	}
 	if r.ko.Spec.ReceiveMessageWaitTimeSeconds != nil {
 		attrMap["ReceiveMessageWaitTimeSeconds"] = r.ko.Spec.ReceiveMessageWaitTimeSeconds
@@ -456,4 +450,59 @@ func (rm *resourceManager) updateConditions(
 func (rm *resourceManager) terminalAWSError(err error) bool {
 	// No terminal_errors specified for this resource in generator config
 	return false
+}
+
+// getImmutableFieldChanges returns list of immutable fields from the
+func (rm *resourceManager) getImmutableFieldChanges(
+	delta *ackcompare.Delta,
+) []string {
+	var fields []string
+	if delta.DifferentAt("QueueName") {
+		fields = append(fields, "QueueName")
+	}
+
+	return fields
+}
+
+// handleImmutableFieldsChangedCondition validates the immutable fields and set appropriate condition
+func (rm *resourceManager) handleImmutableFieldsChangedCondition(
+	r *resource,
+	delta *ackcompare.Delta,
+) *resource {
+
+	fields := rm.getImmutableFieldChanges(delta)
+	ko := r.ko.DeepCopy()
+	var advisoryCondition *ackv1alpha1.Condition = nil
+	for _, condition := range ko.Status.Conditions {
+		if condition.Type == ackv1alpha1.ConditionTypeAdvisory {
+			advisoryCondition = condition
+			break
+		}
+	}
+
+	// Remove the advisory condition if issue is no longer present
+	if len(fields) == 0 && advisoryCondition != nil {
+		var newConditions []*ackv1alpha1.Condition
+		for _, condition := range ko.Status.Conditions {
+			if condition.Type != ackv1alpha1.ConditionTypeAdvisory {
+				newConditions = append(newConditions, condition)
+			}
+		}
+		ko.Status.Conditions = newConditions
+	}
+
+	if len(fields) > 0 {
+		if advisoryCondition == nil {
+			advisoryCondition = &ackv1alpha1.Condition{
+				Type: ackv1alpha1.ConditionTypeAdvisory,
+			}
+			ko.Status.Conditions = append(ko.Status.Conditions, advisoryCondition)
+		}
+
+		advisoryCondition.Status = corev1.ConditionTrue
+		message := "Immutable Spec fields have been modified : " + strings.Join(fields, ",")
+		advisoryCondition.Message = &message
+	}
+
+	return &resource{ko}
 }

@@ -337,11 +337,6 @@ func (in *QueueSpec) DeepCopyInto(out *QueueSpec) {
 		*out = new(string)
 		**out = **in
 	}
-	if in.QueueARN != nil {
-		in, out := &in.QueueARN, &out.QueueARN
-		*out = new(string)
-		**out = **in
-	}
 	if in.QueueName != nil {
 		in, out := &in.QueueName, &out.QueueName
 		*out = new(string)

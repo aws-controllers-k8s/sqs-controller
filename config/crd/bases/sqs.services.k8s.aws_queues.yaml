@@ -52,8 +52,6 @@ spec:
                 type: string
               policy:
                 type: string
-              queueARN:
-                type: string
               queueName:
                 type: string
               receiveMessageWaitTimeSeconds:

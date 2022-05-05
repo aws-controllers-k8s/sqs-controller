@@ -38,8 +38,6 @@ type QueueSpec struct {
 
 	Policy *string `json:"policy,omitempty"`
 
-	QueueARN *string `json:"queueARN,omitempty"`
-
 	// +kubebuilder:validation:Required
 	QueueName *string `json:"queueName"`
 

@@ -97,13 +97,6 @@ func newResourceDelta(
 			delta.Add("Spec.Policy", a.ko.Spec.Policy, b.ko.Spec.Policy)
 		}
 	}
-	if ackcompare.HasNilDifference(a.ko.Spec.QueueARN, b.ko.Spec.QueueARN) {
-		delta.Add("Spec.QueueARN", a.ko.Spec.QueueARN, b.ko.Spec.QueueARN)
-	} else if a.ko.Spec.QueueARN != nil && b.ko.Spec.QueueARN != nil {
-		if *a.ko.Spec.QueueARN != *b.ko.Spec.QueueARN {
-			delta.Add("Spec.QueueARN", a.ko.Spec.QueueARN, b.ko.Spec.QueueARN)
-		}
-	}
 	if ackcompare.HasNilDifference(a.ko.Spec.QueueName, b.ko.Spec.QueueName) {
 		delta.Add("Spec.QueueName", a.ko.Spec.QueueName, b.ko.Spec.QueueName)
 	} else if a.ko.Spec.QueueName != nil && b.ko.Spec.QueueName != nil {
