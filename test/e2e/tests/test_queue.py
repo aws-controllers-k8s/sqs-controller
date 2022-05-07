@@ -31,11 +31,11 @@ RESOURCE_PLURAL = "queues"
 
 CREATE_WAIT_AFTER_SECONDS = 5
 UPDATE_WAIT_AFTER_SECONDS = 5
-DELETE_WAIT_AFTER_SECONDS = 5
+DELETE_WAIT_AFTER_SECONDS = 60
 
 @service_marker
 @pytest.mark.canary
-class TestFunction:
+class TestQueue:
     def get_queue(self, sqs_client, queue_name: str) -> dict:
         try:
             resp = sqs_client.get_queue_url(
@@ -48,7 +48,7 @@ class TestFunction:
             return None
 
     def queue_exists(self, sqs_client, queue_name: str) -> bool:
-        return self.get_function(sqs_client, queue_name) is not None
+        return self.get_queue(sqs_client, queue_name) is not None
 
     def test_smoke(self, sqs_client):
         resource_name = random_suffix_name("sqs-queue", 24)
