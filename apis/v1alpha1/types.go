@@ -15,30 +15,60 @@
 
 package v1alpha1
 
+import (
+	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
+	"github.com/aws/aws-sdk-go/aws"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+// Hack to avoid import errors during build...
+var (
+	_ = &metav1.Time{}
+	_ = &aws.JSONValue{}
+	_ = ackv1alpha1.AWSAccountID("")
+)
+
+// Gives a detailed description of the result of an action on each entry in
+// the request.
 type BatchResultErrorEntry struct {
 	Code    *string `json:"code,omitempty"`
 	ID      *string `json:"id,omitempty"`
 	Message *string `json:"message,omitempty"`
 }
 
+// Encloses a receipt handle and an entry id for each message in ChangeMessageVisibilityBatch.
+//
+// All of the following list parameters must be prefixed with ChangeMessageVisibilityBatchRequestEntry.n,
+// where n is an integer value starting with 1. For example, a parameter list
+// for this action might look like this:
+//
+// &ChangeMessageVisibilityBatchRequestEntry.1.Id=change_visibility_msg_2
+//
+// &ChangeMessageVisibilityBatchRequestEntry.1.ReceiptHandle=your_receipt_handle
+//
+// &ChangeMessageVisibilityBatchRequestEntry.1.VisibilityTimeout=45
 type ChangeMessageVisibilityBatchRequestEntry struct {
 	ID            *string `json:"id,omitempty"`
 	ReceiptHandle *string `json:"receiptHandle,omitempty"`
 }
 
+// Encloses the Id of an entry in ChangeMessageVisibilityBatch.
 type ChangeMessageVisibilityBatchResultEntry struct {
 	ID *string `json:"id,omitempty"`
 }
 
+// Encloses a receipt handle and an identifier for it.
 type DeleteMessageBatchRequestEntry struct {
 	ID            *string `json:"id,omitempty"`
 	ReceiptHandle *string `json:"receiptHandle,omitempty"`
 }
 
+// Encloses the Id of an entry in DeleteMessageBatch.
 type DeleteMessageBatchResultEntry struct {
 	ID *string `json:"id,omitempty"`
 }
 
+// An Amazon SQS message.
 type Message struct {
 	Body                   *string `json:"body,omitempty"`
 	MD5OfBody              *string `json:"md5OfBody,omitempty"`
@@ -47,16 +77,29 @@ type Message struct {
 	ReceiptHandle          *string `json:"receiptHandle,omitempty"`
 }
 
+// The user-specified message attribute value. For string data types, the Value
+// attribute has the same restrictions on the content as the message body. For
+// more information, see SendMessage.
+//
+// Name, type, value and the message body must not be empty or null. All parts
+// of the message attribute, including Name, Type, and Value, are part of the
+// message size restriction (256 KB or 262,144 bytes).
 type MessageAttributeValue struct {
 	DataType    *string `json:"dataType,omitempty"`
 	StringValue *string `json:"stringValue,omitempty"`
 }
 
+// The user-specified message system attribute value. For string data types,
+// the Value attribute has the same restrictions on the content as the message
+// body. For more information, see SendMessage.
+//
+// Name, type, value and the message body must not be empty or null.
 type MessageSystemAttributeValue struct {
 	DataType    *string `json:"dataType,omitempty"`
 	StringValue *string `json:"stringValue,omitempty"`
 }
 
+// Contains the details of a single Amazon SQS message along with an Id.
 type SendMessageBatchRequestEntry struct {
 	ID                     *string `json:"id,omitempty"`
 	MessageBody            *string `json:"messageBody,omitempty"`
@@ -64,6 +107,7 @@ type SendMessageBatchRequestEntry struct {
 	MessageGroupID         *string `json:"messageGroupID,omitempty"`
 }
 
+// Encloses a MessageId for a successfully-enqueued message in a SendMessageBatch.
 type SendMessageBatchResultEntry struct {
 	ID                           *string `json:"id,omitempty"`
 	MD5OfMessageAttributes       *string `json:"md5OfMessageAttributes,omitempty"`

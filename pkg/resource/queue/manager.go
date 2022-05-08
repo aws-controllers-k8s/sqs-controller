@@ -18,25 +18,34 @@ package queue
 import (
 	"context"
 	"fmt"
-	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
-	corev1 "k8s.io/api/core/v1"
+	"time"
 
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
+	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackcfg "github.com/aws-controllers-k8s/runtime/pkg/config"
+	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackmetrics "github.com/aws-controllers-k8s/runtime/pkg/metrics"
+	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
+	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
+	ackutil "github.com/aws-controllers-k8s/runtime/pkg/util"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/go-logr/logr"
+	corev1 "k8s.io/api/core/v1"
 
 	svcsdk "github.com/aws/aws-sdk-go/service/sqs"
 	svcsdkapi "github.com/aws/aws-sdk-go/service/sqs/sqsiface"
 )
 
+var (
+	_ = ackutil.InStrings
+)
+
 // +kubebuilder:rbac:groups=sqs.services.k8s.aws,resources=queues,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=sqs.services.k8s.aws,resources=queues/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups="",resources=namespaces,verbs=get;list;watch
-// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
+
+var lateInitializeFieldNames = []string{}
 
 // resourceManager is responsible for providing a consistent way to perform
 // CRUD operations in a backend AWS service API for Book custom resources.
@@ -50,9 +59,9 @@ type resourceManager struct {
 	// metrics contains a collection of Prometheus metric objects that the
 	// service controller and its reconcilers track
 	metrics *ackmetrics.Metrics
-	// rr is the AWSResourceReconciler which can be used for various utility
+	// rr is the Reconciler which can be used for various utility
 	// functions such as querying for Secret values given a SecretReference
-	rr acktypes.AWSResourceReconciler
+	rr acktypes.Reconciler
 	// awsAccountID is the AWS account identifier that contains the resources
 	// managed by this resource manager
 	awsAccountID ackv1alpha1.AWSAccountID
@@ -89,6 +98,9 @@ func (rm *resourceManager) ReadOne(
 	}
 	observed, err := rm.sdkFind(ctx, r)
 	if err != nil {
+		if observed != nil {
+			return rm.onError(observed, err)
+		}
 		return rm.onError(r, err)
 	}
 	return rm.onSuccess(observed)
@@ -141,17 +153,26 @@ func (rm *resourceManager) Update(
 }
 
 // Delete attempts to destroy the supplied AWSResource in the backend AWS
-// service API.
+// service API, returning an AWSResource representing the
+// resource being deleted (if delete is asynchronous and takes time)
 func (rm *resourceManager) Delete(
 	ctx context.Context,
 	res acktypes.AWSResource,
-) error {
+) (acktypes.AWSResource, error) {
 	r := rm.concreteResource(res)
 	if r.ko == nil {
 		// Should never happen... if it does, it's buggy code.
 		panic("resource manager's Update() method received resource with nil CR object")
 	}
-	return rm.sdkDelete(ctx, r)
+	observed, err := rm.sdkDelete(ctx, r)
+	if err != nil {
+		if observed != nil {
+			return rm.onError(observed, err)
+		}
+		return rm.onError(r, err)
+	}
+
+	return rm.onSuccess(observed)
 }
 
 // ARNFromName returns an AWS Resource Name from a given string name. This
@@ -167,13 +188,84 @@ func (rm *resourceManager) ARNFromName(name string) string {
 	)
 }
 
+// LateInitialize returns an acktypes.AWSResource after setting the late initialized
+// fields from the readOne call. This method will initialize the optional fields
+// which were not provided by the k8s user but were defaulted by the AWS service.
+// If there are no such fields to be initialized, the returned object is similar to
+// object passed in the parameter.
+func (rm *resourceManager) LateInitialize(
+	ctx context.Context,
+	latest acktypes.AWSResource,
+) (acktypes.AWSResource, error) {
+	rlog := ackrtlog.FromContext(ctx)
+	// If there are no fields to late initialize, do nothing
+	if len(lateInitializeFieldNames) == 0 {
+		rlog.Debug("no late initialization required.")
+		return latest, nil
+	}
+	latestCopy := latest.DeepCopy()
+	lateInitConditionReason := ""
+	lateInitConditionMessage := ""
+	observed, err := rm.ReadOne(ctx, latestCopy)
+	if err != nil {
+		lateInitConditionMessage = "Unable to complete Read operation required for late initialization"
+		lateInitConditionReason = "Late Initialization Failure"
+		ackcondition.SetLateInitialized(latestCopy, corev1.ConditionFalse, &lateInitConditionMessage, &lateInitConditionReason)
+		ackcondition.SetSynced(latestCopy, corev1.ConditionFalse, nil, nil)
+		return latestCopy, err
+	}
+	lateInitializedRes := rm.lateInitializeFromReadOneOutput(observed, latestCopy)
+	incompleteInitialization := rm.incompleteLateInitialization(lateInitializedRes)
+	if incompleteInitialization {
+		// Add the condition with LateInitialized=False
+		lateInitConditionMessage = "Late initialization did not complete, requeuing with delay of 5 seconds"
+		lateInitConditionReason = "Delayed Late Initialization"
+		ackcondition.SetLateInitialized(lateInitializedRes, corev1.ConditionFalse, &lateInitConditionMessage, &lateInitConditionReason)
+		ackcondition.SetSynced(lateInitializedRes, corev1.ConditionFalse, nil, nil)
+		return lateInitializedRes, ackrequeue.NeededAfter(nil, time.Duration(5)*time.Second)
+	}
+	// Set LateInitialized condition to True
+	lateInitConditionMessage = "Late initialization successful"
+	lateInitConditionReason = "Late initialization successful"
+	ackcondition.SetLateInitialized(lateInitializedRes, corev1.ConditionTrue, &lateInitConditionMessage, &lateInitConditionReason)
+	return lateInitializedRes, nil
+}
+
+// incompleteLateInitialization return true if there are fields which were supposed to be
+// late initialized but are not. If all the fields are late initialized, false is returned
+func (rm *resourceManager) incompleteLateInitialization(
+	res acktypes.AWSResource,
+) bool {
+	return false
+}
+
+// lateInitializeFromReadOneOutput late initializes the 'latest' resource from the 'observed'
+// resource and returns 'latest' resource
+func (rm *resourceManager) lateInitializeFromReadOneOutput(
+	observed acktypes.AWSResource,
+	latest acktypes.AWSResource,
+) acktypes.AWSResource {
+	return latest
+}
+
+// IsSynced returns true if the resource is synced.
+func (rm *resourceManager) IsSynced(ctx context.Context, res acktypes.AWSResource) (bool, error) {
+	r := rm.concreteResource(res)
+	if r.ko == nil {
+		// Should never happen... if it does, it's buggy code.
+		panic("resource manager's IsSynced() method received resource with nil CR object")
+	}
+
+	return true, nil
+}
+
 // newResourceManager returns a new struct implementing
 // acktypes.AWSResourceManager
 func newResourceManager(
 	cfg ackcfg.Config,
 	log logr.Logger,
 	metrics *ackmetrics.Metrics,
-	rr acktypes.AWSResourceReconciler,
+	rr acktypes.Reconciler,
 	sess *session.Session,
 	id ackv1alpha1.AWSAccountID,
 	region ackv1alpha1.AWSRegion,
@@ -196,7 +288,10 @@ func (rm *resourceManager) onError(
 	r *resource,
 	err error,
 ) (acktypes.AWSResource, error) {
-	r1, updated := rm.updateConditions(r, err)
+	if r == nil {
+		return nil, err
+	}
+	r1, updated := rm.updateConditions(r, false, err)
 	if !updated {
 		return r, err
 	}
@@ -216,7 +311,10 @@ func (rm *resourceManager) onError(
 func (rm *resourceManager) onSuccess(
 	r *resource,
 ) (acktypes.AWSResource, error) {
-	r1, updated := rm.updateConditions(r, nil)
+	if r == nil {
+		return nil, nil
+	}
+	r1, updated := rm.updateConditions(r, true, nil)
 	if !updated {
 		return r, nil
 	}

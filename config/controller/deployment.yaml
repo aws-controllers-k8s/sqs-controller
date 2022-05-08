@@ -26,20 +26,23 @@ spec:
       - command:
         - ./bin/controller
         args:
-        - --aws-account-id
-        - "$(AWS_ACCOUNT_ID)"
         - --aws-region
         - "$(AWS_REGION)"
+        - --aws-endpoint-url
+        - "$(AWS_ENDPOINT_URL)"
         - --enable-development-logging
         - "$(ACK_ENABLE_DEVELOPMENT_LOGGING)"
         - --log-level
         - "$(ACK_LOG_LEVEL)"
         - --resource-tags
         - "$(ACK_RESOURCE_TAGS)"
+        - --watch-namespace
+        - "$(ACK_WATCH_NAMESPACE)"
         image: controller:latest
         name: controller
         ports:
-          - containerPort: 8080
+          - name: http
+            containerPort: 8080
         resources:
           limits:
             cpu: 100m
@@ -48,8 +51,31 @@ spec:
             cpu: 100m
             memory: 200Mi
         env:
-        - name: K8S_NAMESPACE
+        - name: ACK_SYSTEM_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        - name: AWS_REGION
+          value: ""
+        - name: AWS_ENDPOINT_URL
+          value: ""
+        - name: ACK_WATCH_NAMESPACE
+          value: ""
+        - name: ACK_ENABLE_DEVELOPMENT_LOGGING
+          value: "false"
+        - name: ACK_LOG_LEVEL
+          value: "info"
+        - name: ACK_RESOURCE_TAGS
+          value: "services.k8s.aws/managed=true,services.k8s.aws/created=%UTCNOW%,services.k8s.aws/namespace=%KUBERNETES_NAMESPACE%"
+        securityContext:
+          allowPrivilegeEscalation: false
+          privileged: false
+          runAsNonRoot: true
+          capabilities:
+            drop:
+              - ALL
       terminationGracePeriodSeconds: 10
+      serviceAccountName: ack-sqs-controller
+      hostIPC: false
+      hostNetwork: false
+      hostPID: false

@@ -57,4 +57,6 @@ const (
 	QueueAttributeName_KmsDataKeyReusePeriodSeconds          QueueAttributeName = "KmsDataKeyReusePeriodSeconds"
 	QueueAttributeName_DeduplicationScope                    QueueAttributeName = "DeduplicationScope"
 	QueueAttributeName_FifoThroughputLimit                   QueueAttributeName = "FifoThroughputLimit"
+	QueueAttributeName_RedriveAllowPolicy                    QueueAttributeName = "RedriveAllowPolicy"
+	QueueAttributeName_SqsManagedSseEnabled                  QueueAttributeName = "SqsManagedSseEnabled"
 )
