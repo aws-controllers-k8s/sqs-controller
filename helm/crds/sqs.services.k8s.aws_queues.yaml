@@ -1,10 +1,9 @@
-
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.9.2
   creationTimestamp: null
   name: queues.sqs.services.k8s.aws
 spec:
@@ -64,12 +63,12 @@ spec:
                 description: "Add cost allocation tags to the specified Amazon SQS
                   queue. For an overview, see Tagging Your Amazon SQS Queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-queue-tags.html)
                   in the Amazon SQS Developer Guide. \n When you use queue tags, keep
-                  the following guidelines in mind: \n    * Adding more than 50 tags
-                  to a queue isn't recommended. \n    * Tags don't have any semantic
-                  meaning. Amazon SQS interprets tags as    character strings. \n
-                  \   * Tags are case-sensitive. \n    * A new tag with a key identical
-                  to that of an existing tag overwrites    the existing tag. \n For
-                  a full list of tag restrictions, see Quotas related to queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-limits.html#limits-queues)
+                  the following guidelines in mind: \n * Adding more than 50 tags
+                  to a queue isn't recommended. \n * Tags don't have any semantic
+                  meaning. Amazon SQS interprets tags as character strings. \n * Tags
+                  are case-sensitive. \n * A new tag with a key identical to that
+                  of an existing tag overwrites the existing tag. \n For a full list
+                  of tag restrictions, see Quotas related to queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-limits.html#limits-queues)
                   in the Amazon SQS Developer Guide. \n To be able to tag a queue
                   on creation, you must have the sqs:CreateQueue and sqs:TagQueue
                   permissions. \n Cross-account permissions don't apply to this action.
@@ -155,9 +154,3 @@ spec:
     storage: true
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []

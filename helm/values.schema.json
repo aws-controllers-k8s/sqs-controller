@@ -65,6 +65,14 @@
       ],
       "type": "object"
     },
+    "role": {
+      "description": "Role settings",
+      "properties": {
+        "labels": {
+	  "type": "object"
+	}
+      }
+    },
     "metrics": {
       "description": "Metrics settings",
       "properties": {
@@ -153,6 +161,21 @@
         },
         "endpoint": {
           "type": "string"
+        },
+        "credentials": {
+          "description": "AWS credentials information",
+          "properties": {
+            "secretName": {
+              "type": "string"
+            },
+            "secretKey": {
+              "type": "string"
+            },
+            "profile": {
+              "type": "string"
+            }
+          },
+          "type": "object"
         }
       },
       "type": "object"
@@ -177,7 +200,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^.*=.*$"
+        "pattern": "(^$|^.*=.*$)"
       }
     },
     "serviceAccount": {
