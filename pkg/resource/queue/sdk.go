@@ -18,6 +18,7 @@ package queue
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -25,6 +26,7 @@ import (
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
+	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	"github.com/aws/aws-sdk-go/aws"
 	svcsdk "github.com/aws/aws-sdk-go/service/sqs"
@@ -45,6 +47,8 @@ var (
 	_ = &ackerr.NotFound
 	_ = &ackcondition.NotManagedMessage
 	_ = &reflect.Value{}
+	_ = fmt.Sprintf("")
+	_ = &ackrequeue.NoRequeue{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -54,7 +58,9 @@ func (rm *resourceManager) sdkFind(
 ) (latest *resource, err error) {
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.sdkFind")
-	defer exit(err)
+	defer func() {
+		exit(err)
+	}()
 	// If any required fields in the input shape are missing, AWS resource is
 	// not created yet. Return NotFound here to indicate to callers that the
 	// resource isn't yet created.
@@ -80,11 +86,22 @@ func (rm *resourceManager) sdkFind(
 	// the original Kubernetes object we passed to the function
 	ko := r.ko.DeepCopy()
 
+	ko.Spec.ContentBasedDeduplication = resp.Attributes["ContentBasedDeduplication"]
+	ko.Spec.DelaySeconds = resp.Attributes["DelaySeconds"]
+	ko.Spec.FifoQueue = resp.Attributes["FifoQueue"]
+	ko.Spec.KMSDataKeyReusePeriodSeconds = resp.Attributes["KmsDataKeyReusePeriodSeconds"]
+	ko.Spec.KMSMasterKeyID = resp.Attributes["KmsMasterKeyId"]
+	ko.Spec.MaximumMessageSize = resp.Attributes["MaximumMessageSize"]
+	ko.Spec.MessageRetentionPeriod = resp.Attributes["MessageRetentionPeriod"]
+	ko.Spec.Policy = resp.Attributes["Policy"]
 	if ko.Status.ACKResourceMetadata == nil {
 		ko.Status.ACKResourceMetadata = &ackv1alpha1.ResourceMetadata{}
 	}
 	tmpARN := ackv1alpha1.AWSResourceName(*resp.Attributes["QueueArn"])
 	ko.Status.ACKResourceMetadata.ARN = &tmpARN
+	ko.Spec.ReceiveMessageWaitTimeSeconds = resp.Attributes["ReceiveMessageWaitTimeSeconds"]
+	ko.Spec.RedrivePolicy = resp.Attributes["RedrivePolicy"]
+	ko.Spec.VisibilityTimeout = resp.Attributes["VisibilityTimeout"]
 
 	rm.setStatusDefaults(ko)
 	return &resource{ko}, nil
@@ -129,7 +146,9 @@ func (rm *resourceManager) sdkCreate(
 ) (created *resource, err error) {
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.sdkCreate")
-	defer exit(err)
+	defer func() {
+		exit(err)
+	}()
 	input, err := rm.newCreateRequestPayload(ctx, desired)
 	if err != nil {
 		return nil, err
@@ -223,6 +242,13 @@ func (rm *resourceManager) sdkUpdate(
 	latest *resource,
 	delta *ackcompare.Delta,
 ) (*resource, error) {
+	var err error
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.sdkUpdate")
+	defer func() {
+		exit(err)
+	}()
+
 	// If any required fields in the input shape are missing, AWS resource is
 	// not created yet. And sdkUpdate should never be called if this is the
 	// case, and it's an error in the generated code if it is...
@@ -323,7 +349,9 @@ func (rm *resourceManager) sdkDelete(
 ) (latest *resource, err error) {
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.sdkDelete")
-	defer exit(err)
+	defer func() {
+		exit(err)
+	}()
 	input, err := rm.newDeleteRequestPayload(r)
 	if err != nil {
 		return nil, err
@@ -457,52 +485,9 @@ func (rm *resourceManager) getImmutableFieldChanges(
 	delta *ackcompare.Delta,
 ) []string {
 	var fields []string
-	if delta.DifferentAt("QueueName") {
+	if delta.DifferentAt("Spec.QueueName") {
 		fields = append(fields, "QueueName")
 	}
 
 	return fields
-}
-
-// handleImmutableFieldsChangedCondition validates the immutable fields and set appropriate condition
-func (rm *resourceManager) handleImmutableFieldsChangedCondition(
-	r *resource,
-	delta *ackcompare.Delta,
-) *resource {
-
-	fields := rm.getImmutableFieldChanges(delta)
-	ko := r.ko.DeepCopy()
-	var advisoryCondition *ackv1alpha1.Condition = nil
-	for _, condition := range ko.Status.Conditions {
-		if condition.Type == ackv1alpha1.ConditionTypeAdvisory {
-			advisoryCondition = condition
-			break
-		}
-	}
-
-	// Remove the advisory condition if issue is no longer present
-	if len(fields) == 0 && advisoryCondition != nil {
-		var newConditions []*ackv1alpha1.Condition
-		for _, condition := range ko.Status.Conditions {
-			if condition.Type != ackv1alpha1.ConditionTypeAdvisory {
-				newConditions = append(newConditions, condition)
-			}
-		}
-		ko.Status.Conditions = newConditions
-	}
-
-	if len(fields) > 0 {
-		if advisoryCondition == nil {
-			advisoryCondition = &ackv1alpha1.Condition{
-				Type: ackv1alpha1.ConditionTypeAdvisory,
-			}
-			ko.Status.Conditions = append(ko.Status.Conditions, advisoryCondition)
-		}
-
-		advisoryCondition.Status = corev1.ConditionTrue
-		message := "Immutable Spec fields have been modified : " + strings.Join(fields, ",")
-		advisoryCondition.Message = &message
-	}
-
-	return &resource{ko}
 }

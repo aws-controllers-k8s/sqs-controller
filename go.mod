@@ -3,14 +3,14 @@ module github.com/aws-controllers-k8s/sqs-controller
 go 1.17
 
 require (
-	github.com/aws-controllers-k8s/runtime v0.18.4
-	github.com/aws/aws-sdk-go v1.44.4
-	github.com/go-logr/logr v1.2.3
+	github.com/aws-controllers-k8s/runtime v0.20.1
+	github.com/aws/aws-sdk-go v1.44.93
+	github.com/go-logr/logr v1.2.0
 	github.com/spf13/pflag v1.0.5
-	k8s.io/api v0.23.6
-	k8s.io/apimachinery v0.23.6
-	k8s.io/client-go v0.23.6
-	sigs.k8s.io/controller-runtime v0.11.2
+	k8s.io/api v0.23.5
+	k8s.io/apimachinery v0.23.5
+	k8s.io/client-go v0.23.5
+	sigs.k8s.io/controller-runtime v0.11.0
 )
 
 require (
