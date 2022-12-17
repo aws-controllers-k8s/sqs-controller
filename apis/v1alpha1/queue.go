@@ -22,28 +22,18 @@ import (
 
 // QueueSpec defines the desired state of Queue.
 type QueueSpec struct {
-	ContentBasedDeduplication *string `json:"contentBasedDeduplication,omitempty"`
-
-	DelaySeconds *string `json:"delaySeconds,omitempty"`
-
-	FifoQueue *string `json:"fifoQueue,omitempty"`
-
+	ContentBasedDeduplication    *string `json:"contentBasedDeduplication,omitempty"`
+	DelaySeconds                 *string `json:"delaySeconds,omitempty"`
+	FifoQueue                    *string `json:"fifoQueue,omitempty"`
 	KMSDataKeyReusePeriodSeconds *string `json:"kmsDataKeyReusePeriodSeconds,omitempty"`
-
-	KMSMasterKeyID *string `json:"kmsMasterKeyID,omitempty"`
-
-	MaximumMessageSize *string `json:"maximumMessageSize,omitempty"`
-
-	MessageRetentionPeriod *string `json:"messageRetentionPeriod,omitempty"`
-
-	Policy *string `json:"policy,omitempty"`
-
+	KMSMasterKeyID               *string `json:"kmsMasterKeyID,omitempty"`
+	MaximumMessageSize           *string `json:"maximumMessageSize,omitempty"`
+	MessageRetentionPeriod       *string `json:"messageRetentionPeriod,omitempty"`
+	Policy                       *string `json:"policy,omitempty"`
 	// +kubebuilder:validation:Required
-	QueueName *string `json:"queueName"`
-
+	QueueName                     *string `json:"queueName"`
 	ReceiveMessageWaitTimeSeconds *string `json:"receiveMessageWaitTimeSeconds,omitempty"`
-
-	RedrivePolicy *string `json:"redrivePolicy,omitempty"`
+	RedrivePolicy                 *string `json:"redrivePolicy,omitempty"`
 	// Add cost allocation tags to the specified Amazon SQS queue. For an overview,
 	// see Tagging Your Amazon SQS Queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-queue-tags.html)
 	// in the Amazon SQS Developer Guide.
@@ -69,9 +59,8 @@ type QueueSpec struct {
 	// Cross-account permissions don't apply to this action. For more information,
 	// see Grant cross-account permissions to a role and a user name (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
 	// in the Amazon SQS Developer Guide.
-	Tags map[string]*string `json:"tags,omitempty"`
-
-	VisibilityTimeout *string `json:"visibilityTimeout,omitempty"`
+	Tags              map[string]*string `json:"tags,omitempty"`
+	VisibilityTimeout *string            `json:"visibilityTimeout,omitempty"`
 }
 
 // QueueStatus defines the observed state of Queue
