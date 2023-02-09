@@ -88,7 +88,7 @@ func (rm *resourceManager) sdkFind(
 
 	ko.Spec.ContentBasedDeduplication = resp.Attributes["ContentBasedDeduplication"]
 	ko.Spec.DelaySeconds = resp.Attributes["DelaySeconds"]
-	ko.Spec.FifoQueue = resp.Attributes["FifoQueue"]
+	ko.Spec.FIFOQueue = resp.Attributes["FifoQueue"]
 	ko.Spec.KMSDataKeyReusePeriodSeconds = resp.Attributes["KmsDataKeyReusePeriodSeconds"]
 	ko.Spec.KMSMasterKeyID = resp.Attributes["KmsMasterKeyId"]
 	ko.Spec.MaximumMessageSize = resp.Attributes["MaximumMessageSize"]
@@ -190,8 +190,8 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.DelaySeconds != nil {
 		attrMap["DelaySeconds"] = r.ko.Spec.DelaySeconds
 	}
-	if r.ko.Spec.FifoQueue != nil {
-		attrMap["FifoQueue"] = r.ko.Spec.FifoQueue
+	if r.ko.Spec.FIFOQueue != nil {
+		attrMap["FifoQueue"] = r.ko.Spec.FIFOQueue
 	}
 	if r.ko.Spec.KMSDataKeyReusePeriodSeconds != nil {
 		attrMap["KmsDataKeyReusePeriodSeconds"] = r.ko.Spec.KMSDataKeyReusePeriodSeconds
@@ -307,8 +307,8 @@ func (rm *resourceManager) newSetAttributesRequestPayload(
 	if r.ko.Spec.DelaySeconds != nil {
 		attrMap["DelaySeconds"] = r.ko.Spec.DelaySeconds
 	}
-	if r.ko.Spec.FifoQueue != nil {
-		attrMap["FifoQueue"] = r.ko.Spec.FifoQueue
+	if r.ko.Spec.FIFOQueue != nil {
+		attrMap["FifoQueue"] = r.ko.Spec.FIFOQueue
 	}
 	if r.ko.Spec.KMSDataKeyReusePeriodSeconds != nil {
 		attrMap["KmsDataKeyReusePeriodSeconds"] = r.ko.Spec.KMSDataKeyReusePeriodSeconds

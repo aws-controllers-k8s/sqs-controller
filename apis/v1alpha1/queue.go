@@ -24,7 +24,7 @@ import (
 type QueueSpec struct {
 	ContentBasedDeduplication    *string `json:"contentBasedDeduplication,omitempty"`
 	DelaySeconds                 *string `json:"delaySeconds,omitempty"`
-	FifoQueue                    *string `json:"fifoQueue,omitempty"`
+	FIFOQueue                    *string `json:"fifoQueue,omitempty"`
 	KMSDataKeyReusePeriodSeconds *string `json:"kmsDataKeyReusePeriodSeconds,omitempty"`
 	KMSMasterKeyID               *string `json:"kmsMasterKeyID,omitempty"`
 	MaximumMessageSize           *string `json:"maximumMessageSize,omitempty"`
