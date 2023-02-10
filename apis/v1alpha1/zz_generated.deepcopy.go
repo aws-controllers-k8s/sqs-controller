@@ -307,8 +307,8 @@ func (in *QueueSpec) DeepCopyInto(out *QueueSpec) {
 		*out = new(string)
 		**out = **in
 	}
-	if in.FifoQueue != nil {
-		in, out := &in.FifoQueue, &out.FifoQueue
+	if in.FIFOQueue != nil {
+		in, out := &in.FIFOQueue, &out.FIFOQueue
 		*out = new(string)
 		**out = **in
 	}

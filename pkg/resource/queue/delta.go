@@ -20,12 +20,14 @@ import (
 	"reflect"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
+	acktags "github.com/aws-controllers-k8s/runtime/pkg/tags"
 )
 
 // Hack to avoid import errors during build...
 var (
 	_ = &bytes.Buffer{}
 	_ = &reflect.Method{}
+	_ = &acktags.Tags{}
 )
 
 // newResourceDelta returns a new `ackcompare.Delta` used to compare two
@@ -55,11 +57,11 @@ func newResourceDelta(
 			delta.Add("Spec.DelaySeconds", a.ko.Spec.DelaySeconds, b.ko.Spec.DelaySeconds)
 		}
 	}
-	if ackcompare.HasNilDifference(a.ko.Spec.FifoQueue, b.ko.Spec.FifoQueue) {
-		delta.Add("Spec.FifoQueue", a.ko.Spec.FifoQueue, b.ko.Spec.FifoQueue)
-	} else if a.ko.Spec.FifoQueue != nil && b.ko.Spec.FifoQueue != nil {
-		if *a.ko.Spec.FifoQueue != *b.ko.Spec.FifoQueue {
-			delta.Add("Spec.FifoQueue", a.ko.Spec.FifoQueue, b.ko.Spec.FifoQueue)
+	if ackcompare.HasNilDifference(a.ko.Spec.FIFOQueue, b.ko.Spec.FIFOQueue) {
+		delta.Add("Spec.FIFOQueue", a.ko.Spec.FIFOQueue, b.ko.Spec.FIFOQueue)
+	} else if a.ko.Spec.FIFOQueue != nil && b.ko.Spec.FIFOQueue != nil {
+		if *a.ko.Spec.FIFOQueue != *b.ko.Spec.FIFOQueue {
+			delta.Add("Spec.FIFOQueue", a.ko.Spec.FIFOQueue, b.ko.Spec.FIFOQueue)
 		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.KMSDataKeyReusePeriodSeconds, b.ko.Spec.KMSDataKeyReusePeriodSeconds) {
