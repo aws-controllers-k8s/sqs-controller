@@ -3,6 +3,8 @@ module github.com/aws-controllers-k8s/sqs-controller
 go 1.19
 
 require (
+	github.com/aws-controllers-k8s/iam-controller v1.1.1
+	github.com/aws-controllers-k8s/kms-controller v1.0.2
 	github.com/aws-controllers-k8s/runtime v0.24.1
 	github.com/aws/aws-sdk-go v1.44.93
 	github.com/go-logr/logr v1.2.3
