@@ -322,6 +322,11 @@ func (in *QueueSpec) DeepCopyInto(out *QueueSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.KMSMasterKeyRef != nil {
+		in, out := &in.KMSMasterKeyRef, &out.KMSMasterKeyRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.MaximumMessageSize != nil {
 		in, out := &in.MaximumMessageSize, &out.MaximumMessageSize
 		*out = new(string)
@@ -336,6 +341,11 @@ func (in *QueueSpec) DeepCopyInto(out *QueueSpec) {
 		in, out := &in.Policy, &out.Policy
 		*out = new(string)
 		**out = **in
+	}
+	if in.PolicyRef != nil {
+		in, out := &in.PolicyRef, &out.PolicyRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.QueueName != nil {
 		in, out := &in.QueueName, &out.QueueName

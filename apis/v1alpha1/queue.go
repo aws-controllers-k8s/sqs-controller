@@ -22,14 +22,16 @@ import (
 
 // QueueSpec defines the desired state of Queue.
 type QueueSpec struct {
-	ContentBasedDeduplication    *string `json:"contentBasedDeduplication,omitempty"`
-	DelaySeconds                 *string `json:"delaySeconds,omitempty"`
-	FIFOQueue                    *string `json:"fifoQueue,omitempty"`
-	KMSDataKeyReusePeriodSeconds *string `json:"kmsDataKeyReusePeriodSeconds,omitempty"`
-	KMSMasterKeyID               *string `json:"kmsMasterKeyID,omitempty"`
-	MaximumMessageSize           *string `json:"maximumMessageSize,omitempty"`
-	MessageRetentionPeriod       *string `json:"messageRetentionPeriod,omitempty"`
-	Policy                       *string `json:"policy,omitempty"`
+	ContentBasedDeduplication    *string                                  `json:"contentBasedDeduplication,omitempty"`
+	DelaySeconds                 *string                                  `json:"delaySeconds,omitempty"`
+	FIFOQueue                    *string                                  `json:"fifoQueue,omitempty"`
+	KMSDataKeyReusePeriodSeconds *string                                  `json:"kmsDataKeyReusePeriodSeconds,omitempty"`
+	KMSMasterKeyID               *string                                  `json:"kmsMasterKeyID,omitempty"`
+	KMSMasterKeyRef              *ackv1alpha1.AWSResourceReferenceWrapper `json:"kmsMasterKeyRef,omitempty"`
+	MaximumMessageSize           *string                                  `json:"maximumMessageSize,omitempty"`
+	MessageRetentionPeriod       *string                                  `json:"messageRetentionPeriod,omitempty"`
+	Policy                       *string                                  `json:"policy,omitempty"`
+	PolicyRef                    *ackv1alpha1.AWSResourceReferenceWrapper `json:"policyRef,omitempty"`
 	// +kubebuilder:validation:Required
 	QueueName                     *string `json:"queueName"`
 	ReceiveMessageWaitTimeSeconds *string `json:"receiveMessageWaitTimeSeconds,omitempty"`

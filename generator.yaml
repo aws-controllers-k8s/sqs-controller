@@ -20,12 +20,20 @@ resources:
       KmsMasterKeyId:
         is_attribute: true
         type: string
+        references:
+          service_name: kms
+          resource: Key
+          path: Status.KeyID
       KmsDataKeyReusePeriodSeconds:
         is_attribute: true
         type: string
       Policy:
         is_attribute: true
         type: string
+        references:
+          service_name: iam
+          resource: Policy
+          path: Spec.PolicyDocument
       ReceiveMessageWaitTimeSeconds:
         is_attribute: true
         type: string
