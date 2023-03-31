@@ -5,3 +5,5 @@ metadata:
 spec:
   queueName: $QUEUE_NAME
   delaySeconds: "0"
+  tags:
+    key1: val1
