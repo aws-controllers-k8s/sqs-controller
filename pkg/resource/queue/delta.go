@@ -126,6 +126,9 @@ func newResourceDelta(
 			delta.Add("Spec.RedrivePolicy", a.ko.Spec.RedrivePolicy, b.ko.Spec.RedrivePolicy)
 		}
 	}
+	if !ackcompare.MapStringStringEqual(ToACKTags(a.ko.Spec.Tags), ToACKTags(b.ko.Spec.Tags)) {
+		delta.Add("Spec.Tags", a.ko.Spec.Tags, b.ko.Spec.Tags)
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.VisibilityTimeout, b.ko.Spec.VisibilityTimeout) {
 		delta.Add("Spec.VisibilityTimeout", a.ko.Spec.VisibilityTimeout, b.ko.Spec.VisibilityTimeout)
 	} else if a.ko.Spec.VisibilityTimeout != nil && b.ko.Spec.VisibilityTimeout != nil {

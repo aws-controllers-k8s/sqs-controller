@@ -20,6 +20,7 @@ import logging
 
 from acktest.resources import random_suffix_name
 from acktest.k8s import resource as k8s
+from acktest import tags
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_sqs_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e.bootstrap_resources import get_bootstrap_resources
@@ -28,8 +29,8 @@ from e2e import sqsqueue
 RESOURCE_PLURAL = "queues"
 
 CREATE_WAIT_AFTER_SECONDS = 5
-UPDATE_WAIT_AFTER_SECONDS = 5
-DELETE_WAIT_AFTER_SECONDS = 60
+MODIFY_WAIT_AFTER_SECONDS = 10
+DELETE_WAIT_AFTER_SECONDS = 20
 
 @pytest.fixture(scope="module")
 def simple_queue():
@@ -92,3 +93,35 @@ class TestQueue:
         latest_attrs = sqsqueue.get_attributes(queue_url)
         assert 'DelaySeconds' in latest_attrs
         assert latest_attrs['DelaySeconds'] == "0"
+
+        # Test updating tags...
+        assert 'tags' in cr['spec']
+        assert len(cr['spec']['tags']) == 1
+        assert 'key1' in cr['spec']['tags']
+        assert cr['spec']['tags']['key1'] == 'val1'
+
+        expect_before_update_tags = {
+            "key1": "val1",
+        }
+        latest_tags = sqsqueue.get_tags(queue_url)
+        tags.assert_equal_without_ack_tags(
+            expect_before_update_tags, latest_tags,
+        )
+
+        new_tags = {
+            "key1": None, # Unfortunately, this is the only way to remove a key
+            "key2": "val2",
+        }
+        updates = {
+            "spec": {"tags": new_tags},
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+
+        expect_after_update_tags = {
+            "key2": "val2",
+        }
+        latest_tags = sqsqueue.get_tags(queue_url)
+        tags.assert_equal_without_ack_tags(
+            expect_after_update_tags, latest_tags,
+        )

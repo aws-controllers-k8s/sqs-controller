@@ -104,6 +104,12 @@ func (rm *resourceManager) sdkFind(
 	ko.Spec.VisibilityTimeout = resp.Attributes["VisibilityTimeout"]
 
 	rm.setStatusDefaults(ko)
+	if tags, err := rm.getTags(ctx, r); err != nil {
+		return nil, err
+	} else {
+		ko.Spec.Tags = tags
+	}
+
 	return &resource{ko}, nil
 }
 
@@ -248,6 +254,14 @@ func (rm *resourceManager) sdkUpdate(
 	defer func() {
 		exit(err)
 	}()
+	if delta.DifferentAt("Spec.Tags") {
+		if err := rm.syncTags(ctx, desired, latest); err != nil {
+			return nil, err
+		}
+	}
+	if !delta.DifferentExcept("Spec.Tags") {
+		return desired, nil
+	}
 
 	// If any required fields in the input shape are missing, AWS resource is
 	// not created yet. And sdkUpdate should never be called if this is the

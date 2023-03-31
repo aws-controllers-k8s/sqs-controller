@@ -119,7 +119,7 @@ def get_attributes(queue_url):
 
 
 def get_tags(queue_url):
-    """Returns a list containing the tags that have been associated to the
+    """Returns a dict containing the tags that have been associated to the
     supplied Queue.
 
     If no such Queue exists, returns None.
@@ -127,6 +127,6 @@ def get_tags(queue_url):
     c = boto3.client('sqs')
     try:
         resp = c.list_queue_tags(QueueUrl=queue_url)
-        return resp['Tag']
+        return resp['Tags']
     except c.exceptions.QueueDoesNotExist:
         return None
