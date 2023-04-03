@@ -4,7 +4,7 @@
 
 image:
   repository: public.ecr.aws/aws-controllers-k8s/sqs-controller
-  tag: v0.0.7
+  tag: v1.0.0
   pullPolicy: IfNotPresent
   pullSecrets: []
 
