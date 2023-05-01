@@ -26,7 +26,6 @@ import (
 	iamapitypes "github.com/aws-controllers-k8s/iam-controller/apis/v1alpha1"
 	kmsapitypes "github.com/aws-controllers-k8s/kms-controller/apis/v1alpha1"
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
-	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
 
@@ -39,79 +38,94 @@ import (
 // +kubebuilder:rbac:groups=iam.services.k8s.aws,resources=policies,verbs=get;list
 // +kubebuilder:rbac:groups=iam.services.k8s.aws,resources=policies/status,verbs=get;list
 
+// ClearResolvedReferences removes any reference values that were made
+// concrete in the spec. It returns a copy of the input AWSResource which
+// contains the original *Ref values, but none of their respective concrete
+// values.
+func (rm *resourceManager) ClearResolvedReferences(res acktypes.AWSResource) acktypes.AWSResource {
+	ko := rm.concreteResource(res).ko.DeepCopy()
+
+	if ko.Spec.KMSMasterKeyRef != nil {
+		ko.Spec.KMSMasterKeyID = nil
+	}
+
+	if ko.Spec.PolicyRef != nil {
+		ko.Spec.Policy = nil
+	}
+
+	return &resource{ko}
+}
+
 // ResolveReferences finds if there are any Reference field(s) present
-// inside AWSResource passed in the parameter and attempts to resolve
-// those reference field(s) into target field(s).
-// It returns an AWSResource with resolved reference(s), and an error if the
-// passed AWSResource's reference field(s) cannot be resolved.
-// This method also adds/updates the ConditionTypeReferencesResolved for the
-// AWSResource.
+// inside AWSResource passed in the parameter and attempts to resolve those
+// reference field(s) into their respective target field(s). It returns a
+// copy of the input AWSResource with resolved reference(s), a boolean which
+// is set to true if the resource contains any references (regardless of if
+// they are resolved successfully) and an error if the passed AWSResource's
+// reference field(s) could not be resolved.
 func (rm *resourceManager) ResolveReferences(
 	ctx context.Context,
 	apiReader client.Reader,
 	res acktypes.AWSResource,
-) (acktypes.AWSResource, error) {
+) (acktypes.AWSResource, bool, error) {
 	namespace := res.MetaObject().GetNamespace()
-	ko := rm.concreteResource(res).ko.DeepCopy()
+	ko := rm.concreteResource(res).ko
+
+	resourceHasReferences := false
 	err := validateReferenceFields(ko)
-	if err == nil {
-		err = resolveReferenceForKMSMasterKeyID(ctx, apiReader, namespace, ko)
-	}
-	if err == nil {
-		err = resolveReferenceForPolicy(ctx, apiReader, namespace, ko)
+	if fieldHasReferences, err := rm.resolveReferenceForKMSMasterKeyID(ctx, apiReader, namespace, ko); err != nil {
+		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
+	} else {
+		resourceHasReferences = resourceHasReferences || fieldHasReferences
 	}
 
-	// If there was an error while resolving any reference, reset all the
-	// resolved values so that they do not get persisted inside etcd
-	if err != nil {
-		ko = rm.concreteResource(res).ko.DeepCopy()
+	if fieldHasReferences, err := rm.resolveReferenceForPolicy(ctx, apiReader, namespace, ko); err != nil {
+		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
+	} else {
+		resourceHasReferences = resourceHasReferences || fieldHasReferences
 	}
-	if hasNonNilReferences(ko) {
-		return ackcondition.WithReferencesResolvedCondition(&resource{ko}, err)
-	}
-	return &resource{ko}, err
+
+	return &resource{ko}, resourceHasReferences, err
 }
 
 // validateReferenceFields validates the reference field and corresponding
 // identifier field.
 func validateReferenceFields(ko *svcapitypes.Queue) error {
+
 	if ko.Spec.KMSMasterKeyRef != nil && ko.Spec.KMSMasterKeyID != nil {
 		return ackerr.ResourceReferenceAndIDNotSupportedFor("KMSMasterKeyID", "KMSMasterKeyRef")
 	}
+
 	if ko.Spec.PolicyRef != nil && ko.Spec.Policy != nil {
 		return ackerr.ResourceReferenceAndIDNotSupportedFor("Policy", "PolicyRef")
 	}
 	return nil
 }
 
-// hasNonNilReferences returns true if resource contains a reference to another
-// resource
-func hasNonNilReferences(ko *svcapitypes.Queue) bool {
-	return false || (ko.Spec.KMSMasterKeyRef != nil) || (ko.Spec.PolicyRef != nil)
-}
-
 // resolveReferenceForKMSMasterKeyID reads the resource referenced
 // from KMSMasterKeyRef field and sets the KMSMasterKeyID
-// from referenced resource
-func resolveReferenceForKMSMasterKeyID(
+// from referenced resource. Returns a boolean indicating whether a reference
+// contains references, or an error
+func (rm *resourceManager) resolveReferenceForKMSMasterKeyID(
 	ctx context.Context,
 	apiReader client.Reader,
 	namespace string,
 	ko *svcapitypes.Queue,
-) error {
+) (hasReferences bool, err error) {
 	if ko.Spec.KMSMasterKeyRef != nil && ko.Spec.KMSMasterKeyRef.From != nil {
+		hasReferences = true
 		arr := ko.Spec.KMSMasterKeyRef.From
-		if arr == nil || arr.Name == nil || *arr.Name == "" {
-			return fmt.Errorf("provided resource reference is nil or empty: KMSMasterKeyRef")
+		if arr.Name == nil || *arr.Name == "" {
+			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: KMSMasterKeyRef")
 		}
 		obj := &kmsapitypes.Key{}
 		if err := getReferencedResourceState_Key(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
-			return err
+			return hasReferences, err
 		}
 		ko.Spec.KMSMasterKeyID = (*string)(obj.Status.KeyID)
 	}
 
-	return nil
+	return hasReferences, nil
 }
 
 // getReferencedResourceState_Key looks up whether a referenced resource
@@ -167,26 +181,28 @@ func getReferencedResourceState_Key(
 
 // resolveReferenceForPolicy reads the resource referenced
 // from PolicyRef field and sets the Policy
-// from referenced resource
-func resolveReferenceForPolicy(
+// from referenced resource. Returns a boolean indicating whether a reference
+// contains references, or an error
+func (rm *resourceManager) resolveReferenceForPolicy(
 	ctx context.Context,
 	apiReader client.Reader,
 	namespace string,
 	ko *svcapitypes.Queue,
-) error {
+) (hasReferences bool, err error) {
 	if ko.Spec.PolicyRef != nil && ko.Spec.PolicyRef.From != nil {
+		hasReferences = true
 		arr := ko.Spec.PolicyRef.From
-		if arr == nil || arr.Name == nil || *arr.Name == "" {
-			return fmt.Errorf("provided resource reference is nil or empty: PolicyRef")
+		if arr.Name == nil || *arr.Name == "" {
+			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: PolicyRef")
 		}
 		obj := &iamapitypes.Policy{}
 		if err := getReferencedResourceState_Policy(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
-			return err
+			return hasReferences, err
 		}
 		ko.Spec.Policy = (*string)(obj.Spec.PolicyDocument)
 	}
 
-	return nil
+	return hasReferences, nil
 }
 
 // getReferencedResourceState_Policy looks up whether a referenced resource
