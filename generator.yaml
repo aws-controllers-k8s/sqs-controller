@@ -8,6 +8,8 @@ resources:
             values:
               - All
     hooks:
+      sdk_get_attributes_pre_set_output:
+        template_path: hooks/queue/sdk_get_attributes_pre_set_output.go.tpl
       sdk_get_attributes_post_set_output:
         template_path: hooks/queue/sdk_get_attributes_post_set_output.go.tpl
       sdk_update_pre_build_request:
