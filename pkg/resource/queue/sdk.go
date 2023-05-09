@@ -103,6 +103,10 @@ func (rm *resourceManager) sdkFind(
 	ko.Spec.RedrivePolicy = resp.Attributes["RedrivePolicy"]
 	ko.Spec.VisibilityTimeout = resp.Attributes["VisibilityTimeout"]
 
+	if ko.Spec.QueueName == nil {
+		split := strings.Split(string(tmpARN), ":")
+		ko.Spec.QueueName = &split[len(split)-1]
+	}
 	rm.setStatusDefaults(ko)
 	if tags, err := rm.getTags(ctx, r); err != nil {
 		return nil, err
