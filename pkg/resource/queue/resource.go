@@ -85,6 +85,11 @@ func (r *resource) SetStatus(desired acktypes.AWSResource) {
 // SetIdentifiers sets the Spec or Status field that is referenced as the unique
 // resource identifier
 func (r *resource) SetIdentifiers(identifier *ackv1alpha1.AWSIdentifiers) error {
+	if identifier.NameOrID == "" {
+		return ackerrors.MissingNameIdentifier
+	}
+	r.ko.Status.QueueURL = &identifier.NameOrID
+
 	return nil
 }
 
