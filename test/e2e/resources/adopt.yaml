@@ -1,0 +1,12 @@
+apiVersion: services.k8s.aws/v1alpha1
+kind: AdoptedResource
+metadata:
+  name: $QUEUE_NAME
+spec:
+  aws:
+    nameOrID: $QUEUE_URL
+  kubernetes:
+    group: sqs.services.k8s.aws
+    kind: Queue
+    metadata:
+      name: $QUEUE_NAME

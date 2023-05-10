@@ -20,6 +20,7 @@ import logging
 
 from acktest.resources import random_suffix_name
 from acktest.k8s import resource as k8s
+from acktest.k8s import condition as k8s_condition
 from acktest import tags
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_sqs_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
@@ -31,6 +32,7 @@ RESOURCE_PLURAL = "queues"
 CREATE_WAIT_AFTER_SECONDS = 5
 MODIFY_WAIT_AFTER_SECONDS = 10
 DELETE_WAIT_AFTER_SECONDS = 20
+
 
 @pytest.fixture(scope="module")
 def simple_queue():
@@ -121,7 +123,7 @@ class TestQueue:
         )
 
         new_tags = {
-            "key1": None, # Unfortunately, this is the only way to remove a key
+            "key1": None,  # Unfortunately, this is the only way to remove a key
             "key2": "val2",
         }
         updates = {
@@ -137,3 +139,52 @@ class TestQueue:
         tags.assert_equal_without_ack_tags(
             expect_after_update_tags, latest_tags,
         )
+
+    def test_adoptedresource(self):
+        queue_name = random_suffix_name("sqs-queue-acktest", 24)
+        queue_url = sqsqueue.create_queue(queue_name)
+
+        sqsqueue.wait_until_exists(queue_name)
+
+        # Adopt the existing queue
+        replacements = REPLACEMENT_VALUES.copy()
+        replacements["QUEUE_NAME"] = queue_name
+        replacements["QUEUE_URL"] = queue_url
+
+        adopt_resource_data = load_sqs_resource(
+            "adopt",
+            additional_replacements=replacements,
+        )
+        logging.debug(adopt_resource_data)
+
+        adopt_ref = k8s.CustomResourceReference(
+            "services.k8s.aws", "v1alpha1", "adoptedresources",
+            queue_name, namespace="default",
+        )
+        k8s.create_custom_resource(adopt_ref, adopt_resource_data)
+        k8s.wait_resource_consumed_by_controller(adopt_ref)
+        k8s_condition.assert_type_status(adopt_ref, k8s_condition.CONDITION_TYPE_ADOPTED, True)
+
+        # Get the adopted queue and verify its attributes
+        queue_ref = k8s.CustomResourceReference(
+            CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+            queue_name, namespace="default",
+        )
+
+        cr = k8s.get_resource(queue_ref)
+        assert cr is not None
+        assert 'spec' in cr
+        assert 'queueName' in cr['spec']
+        assert cr['spec']['queueName'] == queue_name
+
+        assert 'status' in cr
+        assert 'queueURL' in cr['status']
+        assert cr['status']['queueURL'] == queue_url
+
+        _, deleted = k8s.delete_custom_resource(
+            queue_ref,
+            period_length=DELETE_WAIT_AFTER_SECONDS,
+        )
+        assert deleted
+
+        sqsqueue.wait_until_deleted(queue_name)
