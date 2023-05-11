@@ -17,20 +17,24 @@
 import pytest
 import time
 import logging
+import boto3
 
 from acktest.resources import random_suffix_name
 from acktest.k8s import resource as k8s
 from acktest import tags
+from acktest import adoption as adoption
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_sqs_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e.bootstrap_resources import get_bootstrap_resources
 from e2e import sqsqueue
 
+RESOURCE_KIND = "Queue"
 RESOURCE_PLURAL = "queues"
 
 CREATE_WAIT_AFTER_SECONDS = 5
 MODIFY_WAIT_AFTER_SECONDS = 10
 DELETE_WAIT_AFTER_SECONDS = 20
+
 
 @pytest.fixture(scope="module")
 def simple_queue():
@@ -121,7 +125,7 @@ class TestQueue:
         )
 
         new_tags = {
-            "key1": None, # Unfortunately, this is the only way to remove a key
+            "key1": None,  # Unfortunately, this is the only way to remove a key
             "key2": "val2",
         }
         updates = {
@@ -136,4 +140,27 @@ class TestQueue:
         latest_tags = sqsqueue.get_tags(queue_url)
         tags.assert_equal_without_ack_tags(
             expect_after_update_tags, latest_tags,
+        )
+
+
+class TestAdoptQueue(adoption.AbstractAdoptionTest):
+    RESOURCE_PLURAL: str = RESOURCE_PLURAL
+    RESOURCE_VERSION: str = CRD_VERSION
+
+    _queue_name: str = random_suffix_name("ack-adopted-queue", 24)
+    _queue_url: str
+
+    def bootstrap_resource(self):
+        c = boto3.client('sqs')
+        resp = c.create_queue(QueueName=self._queue_name)
+        self._queue_url = resp['QueueUrl']
+
+    def cleanup_resource(self):
+        client = boto3.client('sqs')
+        client.delete_queue(QueueUrl=self._queue_url)
+
+    def get_resource_spec(self) -> adoption.AdoptedResourceSpec:
+        return adoption.AdoptedResourceSpec(
+            aws=adoption.AdoptedResourceNameOrIDIdentifier(additionalKeys={}, nameOrID=self._queue_url),
+            kubernetes=adoption.AdoptedResourceKubernetesIdentifiers(CRD_GROUP, RESOURCE_KIND),
         )
