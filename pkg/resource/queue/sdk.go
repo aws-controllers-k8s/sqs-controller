@@ -29,6 +29,7 @@ import (
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	svcsdk "github.com/aws/aws-sdk-go/service/sqs"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,13 +104,16 @@ func (rm *resourceManager) sdkFind(
 	ko.Spec.RedrivePolicy = resp.Attributes["RedrivePolicy"]
 	ko.Spec.VisibilityTimeout = resp.Attributes["VisibilityTimeout"]
 
-	// If the QueueName field is empty, populate it with the last part of the queue ARN
+	// If the QueueName field is empty, populate it with the resource part of the queue ARN
 	// This is a workaround for the fact that the QueueName field is required by the
 	// CreateQueue API call, but not by the GetQueueAttributes API call
 	// Use case: adopting an existing queue by queue URL
 	if ko.Spec.QueueName == nil {
-		split := strings.Split(string(tmpARN), ":")
-		ko.Spec.QueueName = &split[len(split)-1]
+		arn, err := arn.Parse(string(tmpARN))
+		if err != nil {
+			return nil, fmt.Errorf("error parsing queue ARN: %s, error: %w", tmpARN, err)
+		}
+		ko.Spec.QueueName = &arn.Resource
 	}
 
 	rm.setStatusDefaults(ko)
