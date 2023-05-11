@@ -20,9 +20,9 @@ import time
 import boto3
 import pytest
 
-DEFAULT_WAIT_UNTIL_EXISTS_TIMEOUT_SECONDS = 60 * 10
+DEFAULT_WAIT_UNTIL_EXISTS_TIMEOUT_SECONDS = 60*10
 DEFAULT_WAIT_UNTIL_EXISTS_INTERVAL_SECONDS = 15
-DEFAULT_WAIT_UNTIL_DELETED_TIMEOUT_SECONDS = 60 * 10
+DEFAULT_WAIT_UNTIL_DELETED_TIMEOUT_SECONDS = 60*10
 DEFAULT_WAIT_UNTIL_DELETED_INTERVAL_SECONDS = 15
 
 
@@ -30,7 +30,7 @@ def wait_until_exists(
         queue_name: str,
         timeout_seconds: int = DEFAULT_WAIT_UNTIL_EXISTS_TIMEOUT_SECONDS,
         interval_seconds: int = DEFAULT_WAIT_UNTIL_EXISTS_INTERVAL_SECONDS,
-) -> None:
+    ) -> None:
     """Waits until a Queue with a supplied name is returned from SQS GetQueue
     API.
 
@@ -62,7 +62,7 @@ def wait_until_deleted(
         queue_name: str,
         timeout_seconds: int = DEFAULT_WAIT_UNTIL_DELETED_TIMEOUT_SECONDS,
         interval_seconds: int = DEFAULT_WAIT_UNTIL_DELETED_INTERVAL_SECONDS,
-) -> None:
+    ) -> None:
     """Waits until a Queue with a supplied ID is no longer returned from
     the SQS API.
 
@@ -130,10 +130,3 @@ def get_tags(queue_url):
         return resp['Tags']
     except c.exceptions.QueueDoesNotExist:
         return None
-
-
-def create_queue(queue_name) -> str:
-    """ create queue with queue_name """
-    c = boto3.client('sqs')
-    resp = c.create_queue(QueueName=queue_name)
-    return resp['QueueUrl']

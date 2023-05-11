@@ -17,16 +17,18 @@
 import pytest
 import time
 import logging
+import boto3
 
 from acktest.resources import random_suffix_name
 from acktest.k8s import resource as k8s
-from acktest.k8s import condition as k8s_condition
 from acktest import tags
+from acktest import adoption as adoption
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_sqs_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e.bootstrap_resources import get_bootstrap_resources
 from e2e import sqsqueue
 
+RESOURCE_KIND = "Queue"
 RESOURCE_PLURAL = "queues"
 
 CREATE_WAIT_AFTER_SECONDS = 5
@@ -140,51 +142,25 @@ class TestQueue:
             expect_after_update_tags, latest_tags,
         )
 
-    def test_adoptedresource(self):
-        queue_name = random_suffix_name("sqs-queue-acktest", 24)
-        queue_url = sqsqueue.create_queue(queue_name)
 
-        sqsqueue.wait_until_exists(queue_name)
+class TestAdoptQueue(adoption.AbstractAdoptionTest):
+    RESOURCE_PLURAL: str = RESOURCE_PLURAL
+    RESOURCE_VERSION: str = CRD_VERSION
 
-        # Adopt the existing queue
-        replacements = REPLACEMENT_VALUES.copy()
-        replacements["QUEUE_NAME"] = queue_name
-        replacements["QUEUE_URL"] = queue_url
+    _queue_name: str = random_suffix_name("ack-adopted-queue", 24)
+    _queue_url: str
 
-        adopt_resource_data = load_sqs_resource(
-            "adopt",
-            additional_replacements=replacements,
+    def bootstrap_resource(self):
+        c = boto3.client('sqs')
+        resp = c.create_queue(QueueName=self._queue_name)
+        self._queue_url = resp['QueueUrl']
+
+    def cleanup_resource(self):
+        client = boto3.client('sqs')
+        client.delete_queue(QueueUrl=self._queue_url)
+
+    def get_resource_spec(self) -> adoption.AdoptedResourceSpec:
+        return adoption.AdoptedResourceSpec(
+            aws=adoption.AdoptedResourceNameOrIDIdentifier(additionalKeys={}, nameOrID=self._queue_url),
+            kubernetes=adoption.AdoptedResourceKubernetesIdentifiers(CRD_GROUP, RESOURCE_KIND),
         )
-        logging.debug(adopt_resource_data)
-
-        adopt_ref = k8s.CustomResourceReference(
-            "services.k8s.aws", "v1alpha1", "adoptedresources",
-            queue_name, namespace="default",
-        )
-        k8s.create_custom_resource(adopt_ref, adopt_resource_data)
-        k8s.wait_resource_consumed_by_controller(adopt_ref)
-        k8s_condition.assert_type_status(adopt_ref, k8s_condition.CONDITION_TYPE_ADOPTED, True)
-
-        # Get the adopted queue and verify its attributes
-        queue_ref = k8s.CustomResourceReference(
-            CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
-            queue_name, namespace="default",
-        )
-
-        cr = k8s.get_resource(queue_ref)
-        assert cr is not None
-        assert 'spec' in cr
-        assert 'queueName' in cr['spec']
-        assert cr['spec']['queueName'] == queue_name
-
-        assert 'status' in cr
-        assert 'queueURL' in cr['status']
-        assert cr['status']['queueURL'] == queue_url
-
-        _, deleted = k8s.delete_custom_resource(
-            queue_ref,
-            period_length=DELETE_WAIT_AFTER_SECONDS,
-        )
-        assert deleted
-
-        sqsqueue.wait_until_deleted(queue_name)
