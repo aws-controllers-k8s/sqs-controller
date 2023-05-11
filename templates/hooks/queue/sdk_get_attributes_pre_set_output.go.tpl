@@ -3,6 +3,9 @@
 	// CreateQueue API call, but not by the GetQueueAttributes API call
 	// Use case: adopting an existing queue by queue URL
 	if ko.Spec.QueueName == nil {
-		split := strings.Split(string(tmpARN), ":")
-		ko.Spec.QueueName = &split[len(split)-1]
+		queueName, err := rm.getQueueNameFromARN(tmpARN)
+		if err != nil {
+			return nil, err
+		}
+		ko.Spec.QueueName = &queueName
 	}

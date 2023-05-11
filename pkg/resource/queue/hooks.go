@@ -15,8 +15,11 @@ package queue
 
 import (
 	"context"
+	"fmt"
 
+	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	svcsdk "github.com/aws/aws-sdk-go/service/sqs"
 )
 
@@ -131,4 +134,12 @@ func (rm *resourceManager) removeTags(
 	_, err = rm.sdkapi.UntagQueueWithContext(ctx, input)
 	rm.metrics.RecordAPICall("UPDATE", "UntagQueue", err)
 	return err
+}
+
+func (rm *resourceManager) getQueueNameFromARN(tmpARN ackv1alpha1.AWSResourceName) (string, error) {
+	queueARN, err := arn.Parse(string(tmpARN))
+	if err != nil {
+		return "", fmt.Errorf("error parsing queue ARN: %s, error: %w", tmpARN, err)
+	}
+	return queueARN.Resource, nil
 }
