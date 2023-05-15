@@ -235,7 +235,9 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.VisibilityTimeout != nil {
 		attrMap["VisibilityTimeout"] = r.ko.Spec.VisibilityTimeout
 	}
-	res.SetAttributes(attrMap)
+	if len(attrMap) > 0 {
+		res.SetAttributes(attrMap)
+	}
 	if r.ko.Spec.QueueName != nil {
 		res.SetQueueName(*r.ko.Spec.QueueName)
 	}
