@@ -56,6 +56,9 @@ resources:
       RedrivePolicy:
         is_attribute: true
         type: string
+      RedriveAllowPolicy:
+        is_attribute: true
+        type: string
       QueueArn:
         is_attribute: true
         is_arn: true

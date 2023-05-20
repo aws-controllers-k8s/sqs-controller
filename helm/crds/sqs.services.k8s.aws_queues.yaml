@@ -81,6 +81,8 @@ spec:
                 type: string
               receiveMessageWaitTimeSeconds:
                 type: string
+              redriveAllowPolicy:
+                type: string
               redrivePolicy:
                 type: string
               tags:

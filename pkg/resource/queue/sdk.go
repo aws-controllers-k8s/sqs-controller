@@ -100,6 +100,7 @@ func (rm *resourceManager) sdkFind(
 	tmpARN := ackv1alpha1.AWSResourceName(*resp.Attributes["QueueArn"])
 	ko.Status.ACKResourceMetadata.ARN = &tmpARN
 	ko.Spec.ReceiveMessageWaitTimeSeconds = resp.Attributes["ReceiveMessageWaitTimeSeconds"]
+	ko.Spec.RedriveAllowPolicy = resp.Attributes["RedriveAllowPolicy"]
 	ko.Spec.RedrivePolicy = resp.Attributes["RedrivePolicy"]
 	ko.Spec.VisibilityTimeout = resp.Attributes["VisibilityTimeout"]
 
@@ -229,6 +230,9 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.ReceiveMessageWaitTimeSeconds != nil {
 		attrMap["ReceiveMessageWaitTimeSeconds"] = r.ko.Spec.ReceiveMessageWaitTimeSeconds
 	}
+	if r.ko.Spec.RedriveAllowPolicy != nil {
+		attrMap["RedriveAllowPolicy"] = r.ko.Spec.RedriveAllowPolicy
+	}
 	if r.ko.Spec.RedrivePolicy != nil {
 		attrMap["RedrivePolicy"] = r.ko.Spec.RedrivePolicy
 	}
@@ -355,6 +359,9 @@ func (rm *resourceManager) newSetAttributesRequestPayload(
 	}
 	if r.ko.Spec.ReceiveMessageWaitTimeSeconds != nil {
 		attrMap["ReceiveMessageWaitTimeSeconds"] = r.ko.Spec.ReceiveMessageWaitTimeSeconds
+	}
+	if r.ko.Spec.RedriveAllowPolicy != nil {
+		attrMap["RedriveAllowPolicy"] = r.ko.Spec.RedriveAllowPolicy
 	}
 	if r.ko.Spec.RedrivePolicy != nil {
 		attrMap["RedrivePolicy"] = r.ko.Spec.RedrivePolicy

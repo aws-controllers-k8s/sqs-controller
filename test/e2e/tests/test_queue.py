@@ -100,8 +100,13 @@ class TestQueue:
 
         # Test updating one of the attributes...
         new_delay = "10"
+        redrive_policy = '{"redrivePermission":"denyAll"}'
+
         updates = {
-            "spec": {"delaySeconds": new_delay},
+            "spec": {
+                "delaySeconds": new_delay,
+                "redriveAllowPolicy": redrive_policy,
+            },
         }
         k8s.patch_custom_resource(ref, updates)
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
@@ -109,6 +114,7 @@ class TestQueue:
         latest_attrs = sqsqueue.get_attributes(queue_url)
         assert 'DelaySeconds' in latest_attrs
         assert latest_attrs['DelaySeconds'] == new_delay
+        assert latest_attrs['RedriveAllowPolicy'] == redrive_policy
 
         # Test updating tags...
         assert 'tags' in cr['spec']
