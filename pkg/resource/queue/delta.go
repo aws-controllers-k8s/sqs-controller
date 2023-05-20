@@ -119,6 +119,13 @@ func newResourceDelta(
 			delta.Add("Spec.ReceiveMessageWaitTimeSeconds", a.ko.Spec.ReceiveMessageWaitTimeSeconds, b.ko.Spec.ReceiveMessageWaitTimeSeconds)
 		}
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.RedriveAllowPolicy, b.ko.Spec.RedriveAllowPolicy) {
+		delta.Add("Spec.RedriveAllowPolicy", a.ko.Spec.RedriveAllowPolicy, b.ko.Spec.RedriveAllowPolicy)
+	} else if a.ko.Spec.RedriveAllowPolicy != nil && b.ko.Spec.RedriveAllowPolicy != nil {
+		if *a.ko.Spec.RedriveAllowPolicy != *b.ko.Spec.RedriveAllowPolicy {
+			delta.Add("Spec.RedriveAllowPolicy", a.ko.Spec.RedriveAllowPolicy, b.ko.Spec.RedriveAllowPolicy)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.RedrivePolicy, b.ko.Spec.RedrivePolicy) {
 		delta.Add("Spec.RedrivePolicy", a.ko.Spec.RedrivePolicy, b.ko.Spec.RedrivePolicy)
 	} else if a.ko.Spec.RedrivePolicy != nil && b.ko.Spec.RedrivePolicy != nil {

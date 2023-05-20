@@ -357,6 +357,11 @@ func (in *QueueSpec) DeepCopyInto(out *QueueSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.RedriveAllowPolicy != nil {
+		in, out := &in.RedriveAllowPolicy, &out.RedriveAllowPolicy
+		*out = new(string)
+		**out = **in
+	}
 	if in.RedrivePolicy != nil {
 		in, out := &in.RedrivePolicy, &out.RedrivePolicy
 		*out = new(string)

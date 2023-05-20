@@ -35,6 +35,7 @@ type QueueSpec struct {
 	// +kubebuilder:validation:Required
 	QueueName                     *string `json:"queueName"`
 	ReceiveMessageWaitTimeSeconds *string `json:"receiveMessageWaitTimeSeconds,omitempty"`
+	RedriveAllowPolicy            *string `json:"redriveAllowPolicy,omitempty"`
 	RedrivePolicy                 *string `json:"redrivePolicy,omitempty"`
 	// Add cost allocation tags to the specified Amazon SQS queue. For an overview,
 	// see Tagging Your Amazon SQS Queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-queue-tags.html)
