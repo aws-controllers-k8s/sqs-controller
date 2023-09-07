@@ -173,6 +173,8 @@ spec:
                   - type
                   type: object
                 type: array
+              queueARN:
+                type: string
               queueURL:
                 description: The URL of the created Amazon SQS queue.
                 type: string
