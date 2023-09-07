@@ -79,6 +79,8 @@ type QueueStatus struct {
 	// resource
 	// +kubebuilder:validation:Optional
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
+	// +kubebuilder:validation:Optional
+	QueueARN *string `json:"queueARN,omitempty"`
 	// The URL of the created Amazon SQS queue.
 	// +kubebuilder:validation:Optional
 	QueueURL *string `json:"queueURL,omitempty"`

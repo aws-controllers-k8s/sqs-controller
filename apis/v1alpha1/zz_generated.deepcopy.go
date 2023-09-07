@@ -418,6 +418,11 @@ func (in *QueueStatus) DeepCopyInto(out *QueueStatus) {
 			}
 		}
 	}
+	if in.QueueARN != nil {
+		in, out := &in.QueueARN, &out.QueueARN
+		*out = new(string)
+		**out = **in
+	}
 	if in.QueueURL != nil {
 		in, out := &in.QueueURL, &out.QueueURL
 		*out = new(string)
