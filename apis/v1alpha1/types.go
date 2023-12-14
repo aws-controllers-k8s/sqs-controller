@@ -36,17 +36,7 @@ type BatchResultErrorEntry struct {
 	Message *string `json:"message,omitempty"`
 }
 
-// Encloses a receipt handle and an entry id for each message in ChangeMessageVisibilityBatch.
-//
-// All of the following list parameters must be prefixed with ChangeMessageVisibilityBatchRequestEntry.n,
-// where n is an integer value starting with 1. For example, a parameter list
-// for this action might look like this:
-//
-// &ChangeMessageVisibilityBatchRequestEntry.1.Id=change_visibility_msg_2
-//
-// &ChangeMessageVisibilityBatchRequestEntry.1.ReceiptHandle=your_receipt_handle
-//
-// &ChangeMessageVisibilityBatchRequestEntry.1.VisibilityTimeout=45
+// Encloses a receipt handle and an entry ID for each message in ChangeMessageVisibilityBatch.
 type ChangeMessageVisibilityBatchRequestEntry struct {
 	ID            *string `json:"id,omitempty"`
 	ReceiptHandle *string `json:"receiptHandle,omitempty"`
@@ -68,6 +58,15 @@ type DeleteMessageBatchResultEntry struct {
 	ID *string `json:"id,omitempty"`
 }
 
+// Contains the details of a message movement task.
+type ListMessageMoveTasksResultEntry struct {
+	DestinationARN *string `json:"destinationARN,omitempty"`
+	FailureReason  *string `json:"failureReason,omitempty"`
+	SourceARN      *string `json:"sourceARN,omitempty"`
+	Status         *string `json:"status,omitempty"`
+	TaskHandle     *string `json:"taskHandle,omitempty"`
+}
+
 // An Amazon SQS message.
 type Message struct {
 	Body                   *string `json:"body,omitempty"`
@@ -83,7 +82,7 @@ type Message struct {
 //
 // Name, type, value and the message body must not be empty or null. All parts
 // of the message attribute, including Name, Type, and Value, are part of the
-// message size restriction (256 KB or 262,144 bytes).
+// message size restriction (256 KiB or 262,144 bytes).
 type MessageAttributeValue struct {
 	DataType    *string `json:"dataType,omitempty"`
 	StringValue *string `json:"stringValue,omitempty"`

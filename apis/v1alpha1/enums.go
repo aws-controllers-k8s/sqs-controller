@@ -26,6 +26,7 @@ const (
 	MessageSystemAttributeName_MessageDeduplicationId           MessageSystemAttributeName = "MessageDeduplicationId"
 	MessageSystemAttributeName_MessageGroupId                   MessageSystemAttributeName = "MessageGroupId"
 	MessageSystemAttributeName_AWSTraceHeader                   MessageSystemAttributeName = "AWSTraceHeader"
+	MessageSystemAttributeName_DeadLetterQueueSourceArn         MessageSystemAttributeName = "DeadLetterQueueSourceArn"
 )
 
 type MessageSystemAttributeNameForSends string
