@@ -60,7 +60,7 @@ type QueueSpec struct {
 	// and sqs:TagQueue permissions.
 	//
 	// Cross-account permissions don't apply to this action. For more information,
-	// see Grant cross-account permissions to a role and a user name (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
+	// see Grant cross-account permissions to a role and a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
 	// in the Amazon SQS Developer Guide.
 	Tags              map[string]*string `json:"tags,omitempty"`
 	VisibilityTimeout *string            `json:"visibilityTimeout,omitempty"`
