@@ -1,5 +1,9 @@
 resources:
   Queue:
+    exceptions:
+      errors:
+        404:
+          code: AWS.SimpleQueueService.NonExistentQueue
     unpack_attributes_map:
       set_attributes_single_attribute: false
       get_attributes_input:

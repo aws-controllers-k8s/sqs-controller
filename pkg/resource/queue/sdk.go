@@ -76,7 +76,7 @@ func (rm *resourceManager) sdkFind(
 	resp, err = rm.sdkapi.GetQueueAttributesWithContext(ctx, input)
 	rm.metrics.RecordAPICall("GET_ATTRIBUTES", "GetQueueAttributes", err)
 	if err != nil {
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "UNKNOWN" {
+		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "AWS.SimpleQueueService.NonExistentQueue" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -300,7 +300,7 @@ func (rm *resourceManager) sdkUpdate(
 	_, respErr := rm.sdkapi.SetQueueAttributesWithContext(ctx, input)
 	rm.metrics.RecordAPICall("SET_ATTRIBUTES", "SetQueueAttributes", respErr)
 	if respErr != nil {
-		if awsErr, ok := ackerr.AWSError(respErr); ok && awsErr.Code() == "UNKNOWN" {
+		if awsErr, ok := ackerr.AWSError(respErr); ok && awsErr.Code() == "AWS.SimpleQueueService.NonExistentQueue" {
 			// Technically, this means someone deleted the backend resource in
 			// between the time we got a result back from sdkFind() and here...
 			return nil, ackerr.NotFound
