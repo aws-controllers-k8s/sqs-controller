@@ -68,18 +68,17 @@ func (rm *resourceManager) ResolveReferences(
 	apiReader client.Reader,
 	res acktypes.AWSResource,
 ) (acktypes.AWSResource, bool, error) {
-	namespace := res.MetaObject().GetNamespace()
 	ko := rm.concreteResource(res).ko
 
 	resourceHasReferences := false
 	err := validateReferenceFields(ko)
-	if fieldHasReferences, err := rm.resolveReferenceForKMSMasterKeyID(ctx, apiReader, namespace, ko); err != nil {
+	if fieldHasReferences, err := rm.resolveReferenceForKMSMasterKeyID(ctx, apiReader, ko); err != nil {
 		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
 	} else {
 		resourceHasReferences = resourceHasReferences || fieldHasReferences
 	}
 
-	if fieldHasReferences, err := rm.resolveReferenceForPolicy(ctx, apiReader, namespace, ko); err != nil {
+	if fieldHasReferences, err := rm.resolveReferenceForPolicy(ctx, apiReader, ko); err != nil {
 		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
 	} else {
 		resourceHasReferences = resourceHasReferences || fieldHasReferences
@@ -109,7 +108,6 @@ func validateReferenceFields(ko *svcapitypes.Queue) error {
 func (rm *resourceManager) resolveReferenceForKMSMasterKeyID(
 	ctx context.Context,
 	apiReader client.Reader,
-	namespace string,
 	ko *svcapitypes.Queue,
 ) (hasReferences bool, err error) {
 	if ko.Spec.KMSMasterKeyRef != nil && ko.Spec.KMSMasterKeyRef.From != nil {
@@ -117,6 +115,10 @@ func (rm *resourceManager) resolveReferenceForKMSMasterKeyID(
 		arr := ko.Spec.KMSMasterKeyRef.From
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: KMSMasterKeyRef")
+		}
+		namespace := ko.ObjectMeta.GetNamespace()
+		if arr.Namespace != nil && *arr.Namespace != "" {
+			namespace = *arr.Namespace
 		}
 		obj := &kmsapitypes.Key{}
 		if err := getReferencedResourceState_Key(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
@@ -186,7 +188,6 @@ func getReferencedResourceState_Key(
 func (rm *resourceManager) resolveReferenceForPolicy(
 	ctx context.Context,
 	apiReader client.Reader,
-	namespace string,
 	ko *svcapitypes.Queue,
 ) (hasReferences bool, err error) {
 	if ko.Spec.PolicyRef != nil && ko.Spec.PolicyRef.From != nil {
@@ -194,6 +195,10 @@ func (rm *resourceManager) resolveReferenceForPolicy(
 		arr := ko.Spec.PolicyRef.From
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: PolicyRef")
+		}
+		namespace := ko.ObjectMeta.GetNamespace()
+		if arr.Namespace != nil && *arr.Namespace != "" {
+			namespace = *arr.Namespace
 		}
 		obj := &iamapitypes.Policy{}
 		if err := getReferencedResourceState_Policy(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
