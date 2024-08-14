@@ -7,7 +7,7 @@ toolchain go1.22.5
 require (
 	github.com/aws-controllers-k8s/iam-controller v1.1.1
 	github.com/aws-controllers-k8s/kms-controller v1.0.2
-	github.com/aws-controllers-k8s/runtime v0.36.0
+	github.com/aws-controllers-k8s/runtime v0.37.1
 	github.com/aws/aws-sdk-go v1.49.0
 	github.com/go-logr/logr v1.4.1
 	github.com/spf13/pflag v1.0.5
