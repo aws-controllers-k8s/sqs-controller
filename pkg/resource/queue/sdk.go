@@ -102,6 +102,7 @@ func (rm *resourceManager) sdkFind(
 	ko.Spec.ReceiveMessageWaitTimeSeconds = resp.Attributes["ReceiveMessageWaitTimeSeconds"]
 	ko.Spec.RedriveAllowPolicy = resp.Attributes["RedriveAllowPolicy"]
 	ko.Spec.RedrivePolicy = resp.Attributes["RedrivePolicy"]
+	ko.Spec.SQSManagedSSEEnabled = resp.Attributes["SqsManagedSseEnabled"]
 	ko.Spec.VisibilityTimeout = resp.Attributes["VisibilityTimeout"]
 
 	// If the QueueName field is empty, populate it with the last part of the queue ARN
@@ -236,6 +237,9 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.RedrivePolicy != nil {
 		attrMap["RedrivePolicy"] = r.ko.Spec.RedrivePolicy
 	}
+	if r.ko.Spec.SQSManagedSSEEnabled != nil {
+		attrMap["SqsManagedSseEnabled"] = r.ko.Spec.SQSManagedSSEEnabled
+	}
 	if r.ko.Spec.VisibilityTimeout != nil {
 		attrMap["VisibilityTimeout"] = r.ko.Spec.VisibilityTimeout
 	}
@@ -366,10 +370,15 @@ func (rm *resourceManager) newSetAttributesRequestPayload(
 	if r.ko.Spec.RedrivePolicy != nil {
 		attrMap["RedrivePolicy"] = r.ko.Spec.RedrivePolicy
 	}
+	if r.ko.Spec.SQSManagedSSEEnabled != nil {
+		attrMap["SqsManagedSseEnabled"] = r.ko.Spec.SQSManagedSSEEnabled
+	}
 	if r.ko.Spec.VisibilityTimeout != nil {
 		attrMap["VisibilityTimeout"] = r.ko.Spec.VisibilityTimeout
 	}
-	res.SetAttributes(attrMap)
+	if len(attrMap) > 0 {
+		res.SetAttributes(attrMap)
+	}
 	if r.ko.Status.QueueURL != nil {
 		res.SetQueueUrl(*r.ko.Status.QueueURL)
 	}

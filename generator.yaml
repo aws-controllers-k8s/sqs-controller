@@ -22,12 +22,15 @@ resources:
       DelaySeconds:
         is_attribute: true
         type: string
+        late_initialize: {}
       MaximumMessageSize:
         is_attribute: true
         type: string
+        late_initialize: {}
       MessageRetentionPeriod:
         is_attribute: true
         type: string
+        late_initialize: {}
       KmsMasterKeyId:
         is_attribute: true
         type: string
@@ -36,6 +39,9 @@ resources:
           resource: Key
           path: Status.KeyID
       KmsDataKeyReusePeriodSeconds:
+        is_attribute: true
+        type: string
+      SqsManagedSseEnabled:
         is_attribute: true
         type: string
       Policy:
@@ -48,9 +54,11 @@ resources:
       ReceiveMessageWaitTimeSeconds:
         is_attribute: true
         type: string
+        late_initialize: {}
       VisibilityTimeout:
         is_attribute: true
         type: string
+        late_initialize: {}
       FifoQueue:
         is_attribute: true
         type: string

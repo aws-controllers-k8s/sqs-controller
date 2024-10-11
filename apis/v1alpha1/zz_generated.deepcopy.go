@@ -406,6 +406,11 @@ func (in *QueueSpec) DeepCopyInto(out *QueueSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.SQSManagedSSEEnabled != nil {
+		in, out := &in.SQSManagedSSEEnabled, &out.SQSManagedSSEEnabled
+		*out = new(string)
+		**out = **in
+	}
 	if in.Tags != nil {
 		in, out := &in.Tags, &out.Tags
 		*out = make(map[string]*string, len(*in))

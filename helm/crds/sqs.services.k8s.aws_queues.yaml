@@ -97,6 +97,8 @@ spec:
                 type: string
               redrivePolicy:
                 type: string
+              sqsManagedSSEEnabled:
+                type: string
               tags:
                 additionalProperties:
                   type: string
