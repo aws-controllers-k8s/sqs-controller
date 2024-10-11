@@ -18,6 +18,7 @@ package v1alpha1
 type MessageSystemAttributeName string
 
 const (
+	MessageSystemAttributeName_All                              MessageSystemAttributeName = "All"
 	MessageSystemAttributeName_SenderId                         MessageSystemAttributeName = "SenderId"
 	MessageSystemAttributeName_SentTimestamp                    MessageSystemAttributeName = "SentTimestamp"
 	MessageSystemAttributeName_ApproximateReceiveCount          MessageSystemAttributeName = "ApproximateReceiveCount"

@@ -133,6 +133,13 @@ func newResourceDelta(
 			delta.Add("Spec.RedrivePolicy", a.ko.Spec.RedrivePolicy, b.ko.Spec.RedrivePolicy)
 		}
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.SQSManagedSSEEnabled, b.ko.Spec.SQSManagedSSEEnabled) {
+		delta.Add("Spec.SQSManagedSSEEnabled", a.ko.Spec.SQSManagedSSEEnabled, b.ko.Spec.SQSManagedSSEEnabled)
+	} else if a.ko.Spec.SQSManagedSSEEnabled != nil && b.ko.Spec.SQSManagedSSEEnabled != nil {
+		if *a.ko.Spec.SQSManagedSSEEnabled != *b.ko.Spec.SQSManagedSSEEnabled {
+			delta.Add("Spec.SQSManagedSSEEnabled", a.ko.Spec.SQSManagedSSEEnabled, b.ko.Spec.SQSManagedSSEEnabled)
+		}
+	}
 	if !ackcompare.MapStringStringEqual(ToACKTags(a.ko.Spec.Tags), ToACKTags(b.ko.Spec.Tags)) {
 		delta.Add("Spec.Tags", a.ko.Spec.Tags, b.ko.Spec.Tags)
 	}
