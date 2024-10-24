@@ -90,6 +90,13 @@ type QueueStatus struct {
 // Queue is the Schema for the Queues API
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="DelaySeconds",type=string,priority=0,JSONPath=`.spec.delaySeconds`
+// +kubebuilder:printcolumn:name="maximumMessageSize",type=string,priority=1,JSONPath=`.spec.maximumMessageSize`
+// +kubebuilder:printcolumn:name="messageRetentionPeriod",type=string,priority=1,JSONPath=`.spec.messageRetentionPeriod`
+// +kubebuilder:printcolumn:name="receiveMessageWaitTimeSeconds",type=string,priority=1,JSONPath=`.spec.receiveMessageWaitTimeSeconds`
+// +kubebuilder:printcolumn:name="visibilityTimeout",type=string,priority=0,JSONPath=`.spec.visibilityTimeout`
+// +kubebuilder:printcolumn:name="Synced",type="string",priority=0,JSONPath=".status.conditions[?(@.type==\"ACK.ResourceSynced\")].status"
+// +kubebuilder:printcolumn:name="Age",type="date",priority=0,JSONPath=".metadata.creationTimestamp"
 type Queue struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
