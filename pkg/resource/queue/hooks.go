@@ -19,8 +19,8 @@ import (
 
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go/aws/arn"
-	svcsdk "github.com/aws/aws-sdk-go/service/sqs"
 )
 
 // syncTags examines the Tags in the supplied Queue and calls the
@@ -34,27 +34,27 @@ func (rm *resourceManager) syncTags(
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.syncTags")
 	defer func() { exit(err) }()
-	toAdd := map[string]*string{}
-	toDelete := []*string{}
+	toAdd := map[string]string{}
+	toDelete := []string{}
 
 	existingTags := latest.ko.Spec.Tags
 
 	for k, v := range desired.ko.Spec.Tags {
 		if ev, found := existingTags[k]; !found || *ev != *v {
-			toAdd[k] = v
+			toAdd[k] = *v
 		}
 	}
 
 	for k, _ := range existingTags {
 		if _, found := desired.ko.Spec.Tags[k]; !found {
 			deleteKey := k
-			toDelete = append(toDelete, &deleteKey)
+			toDelete = append(toDelete, deleteKey)
 		}
 	}
 
 	if len(toAdd) > 0 {
 		for k, v := range toAdd {
-			rlog.Debug("adding tag to queue", "key", k, "value", *v)
+			rlog.Debug("adding tag to queue", "key", k, "value", v)
 		}
 		if err = rm.addTags(ctx, desired, toAdd); err != nil {
 			return err
@@ -62,7 +62,7 @@ func (rm *resourceManager) syncTags(
 	}
 	if len(toDelete) > 0 {
 		for _, k := range toDelete {
-			rlog.Debug("removing tag from queue", "key", *k)
+			rlog.Debug("removing tag from queue", "key", k)
 		}
 		if err = rm.removeTags(ctx, desired, toDelete); err != nil {
 			return err
@@ -76,7 +76,7 @@ func (rm *resourceManager) syncTags(
 func (rm *resourceManager) getTags(
 	ctx context.Context,
 	r *resource,
-) (map[string]*string, error) {
+) (map[string]string, error) {
 	var err error
 	var resp *svcsdk.ListQueueTagsOutput
 	rlog := ackrtlog.FromContext(ctx)
@@ -88,7 +88,7 @@ func (rm *resourceManager) getTags(
 
 	// NOTE(jaypipes): Unlike many other ListTags APIs, SQS's is not
 	// paginated...
-	resp, err = rm.sdkapi.ListQueueTagsWithContext(ctx, input)
+	resp, err = rm.sdkapi.ListQueueTags(ctx, input)
 	rm.metrics.RecordAPICall("READ_MANY", "ListQueueTags", err)
 	if err != nil || resp == nil {
 		return nil, err
@@ -102,7 +102,7 @@ func (rm *resourceManager) getTags(
 func (rm *resourceManager) addTags(
 	ctx context.Context,
 	r *resource,
-	tags map[string]*string,
+	tags map[string]string,
 ) (err error) {
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.addTag")
@@ -112,7 +112,7 @@ func (rm *resourceManager) addTags(
 	input.QueueUrl = r.ko.Status.QueueURL
 	input.Tags = tags
 
-	_, err = rm.sdkapi.TagQueueWithContext(ctx, input)
+	_, err = rm.sdkapi.TagQueue(ctx, input)
 	rm.metrics.RecordAPICall("UPDATE", "TagQueue", err)
 	return err
 }
@@ -121,7 +121,7 @@ func (rm *resourceManager) addTags(
 func (rm *resourceManager) removeTags(
 	ctx context.Context,
 	r *resource,
-	tagKeys []*string, // the set of tag keys to delete
+	tagKeys []string, // the set of tag keys to delete
 ) (err error) {
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.removeTag")
@@ -131,7 +131,7 @@ func (rm *resourceManager) removeTags(
 	input.QueueUrl = r.ko.Status.QueueURL
 	input.TagKeys = tagKeys
 
-	_, err = rm.sdkapi.UntagQueueWithContext(ctx, input)
+	_, err = rm.sdkapi.UntagQueue(ctx, input)
 	rm.metrics.RecordAPICall("UPDATE", "UntagQueue", err)
 	return err
 }

@@ -28,8 +28,10 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/sqs"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/sqs/types"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +42,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.SQS{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.Queue{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +50,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -73,10 +75,11 @@ func (rm *resourceManager) sdkFind(
 		return nil, err
 	}
 	var resp *svcsdk.GetQueueAttributesOutput
-	resp, err = rm.sdkapi.GetQueueAttributesWithContext(ctx, input)
+	resp, err = rm.sdkapi.GetQueueAttributes(ctx, input)
 	rm.metrics.RecordAPICall("GET_ATTRIBUTES", "GetQueueAttributes", err)
 	if err != nil {
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "AWS.SimpleQueueService.NonExistentQueue" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "AWS.SimpleQueueService.NonExistentQueue" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -86,24 +89,89 @@ func (rm *resourceManager) sdkFind(
 	// the original Kubernetes object we passed to the function
 	ko := r.ko.DeepCopy()
 
-	ko.Spec.ContentBasedDeduplication = resp.Attributes["ContentBasedDeduplication"]
-	ko.Spec.DelaySeconds = resp.Attributes["DelaySeconds"]
-	ko.Spec.FIFOQueue = resp.Attributes["FifoQueue"]
-	ko.Spec.KMSDataKeyReusePeriodSeconds = resp.Attributes["KmsDataKeyReusePeriodSeconds"]
-	ko.Spec.KMSMasterKeyID = resp.Attributes["KmsMasterKeyId"]
-	ko.Spec.MaximumMessageSize = resp.Attributes["MaximumMessageSize"]
-	ko.Spec.MessageRetentionPeriod = resp.Attributes["MessageRetentionPeriod"]
-	ko.Spec.Policy = resp.Attributes["Policy"]
+	f0, ok := resp.Attributes["ContentBasedDeduplication"]
+	if ok {
+		ko.Spec.ContentBasedDeduplication = &f0
+	} else {
+		ko.Spec.ContentBasedDeduplication = nil
+	}
+	f1, ok := resp.Attributes["DelaySeconds"]
+	if ok {
+		ko.Spec.DelaySeconds = &f1
+	} else {
+		ko.Spec.DelaySeconds = nil
+	}
+	f2, ok := resp.Attributes["FifoQueue"]
+	if ok {
+		ko.Spec.FIFOQueue = &f2
+	} else {
+		ko.Spec.FIFOQueue = nil
+	}
+	f3, ok := resp.Attributes["KmsDataKeyReusePeriodSeconds"]
+	if ok {
+		ko.Spec.KMSDataKeyReusePeriodSeconds = &f3
+	} else {
+		ko.Spec.KMSDataKeyReusePeriodSeconds = nil
+	}
+	f4, ok := resp.Attributes["KmsMasterKeyId"]
+	if ok {
+		ko.Spec.KMSMasterKeyID = &f4
+	} else {
+		ko.Spec.KMSMasterKeyID = nil
+	}
+	f5, ok := resp.Attributes["MaximumMessageSize"]
+	if ok {
+		ko.Spec.MaximumMessageSize = &f5
+	} else {
+		ko.Spec.MaximumMessageSize = nil
+	}
+	f6, ok := resp.Attributes["MessageRetentionPeriod"]
+	if ok {
+		ko.Spec.MessageRetentionPeriod = &f6
+	} else {
+		ko.Spec.MessageRetentionPeriod = nil
+	}
+	f7, ok := resp.Attributes["Policy"]
+	if ok {
+		ko.Spec.Policy = &f7
+	} else {
+		ko.Spec.Policy = nil
+	}
 	if ko.Status.ACKResourceMetadata == nil {
 		ko.Status.ACKResourceMetadata = &ackv1alpha1.ResourceMetadata{}
 	}
-	tmpARN := ackv1alpha1.AWSResourceName(*resp.Attributes["QueueArn"])
+	tmpARN := ackv1alpha1.AWSResourceName(resp.Attributes["QueueArn"])
 	ko.Status.ACKResourceMetadata.ARN = &tmpARN
-	ko.Spec.ReceiveMessageWaitTimeSeconds = resp.Attributes["ReceiveMessageWaitTimeSeconds"]
-	ko.Spec.RedriveAllowPolicy = resp.Attributes["RedriveAllowPolicy"]
-	ko.Spec.RedrivePolicy = resp.Attributes["RedrivePolicy"]
-	ko.Spec.SQSManagedSSEEnabled = resp.Attributes["SqsManagedSseEnabled"]
-	ko.Spec.VisibilityTimeout = resp.Attributes["VisibilityTimeout"]
+	f9, ok := resp.Attributes["ReceiveMessageWaitTimeSeconds"]
+	if ok {
+		ko.Spec.ReceiveMessageWaitTimeSeconds = &f9
+	} else {
+		ko.Spec.ReceiveMessageWaitTimeSeconds = nil
+	}
+	f10, ok := resp.Attributes["RedriveAllowPolicy"]
+	if ok {
+		ko.Spec.RedriveAllowPolicy = &f10
+	} else {
+		ko.Spec.RedriveAllowPolicy = nil
+	}
+	f11, ok := resp.Attributes["RedrivePolicy"]
+	if ok {
+		ko.Spec.RedrivePolicy = &f11
+	} else {
+		ko.Spec.RedrivePolicy = nil
+	}
+	f12, ok := resp.Attributes["SqsManagedSseEnabled"]
+	if ok {
+		ko.Spec.SQSManagedSSEEnabled = &f12
+	} else {
+		ko.Spec.SQSManagedSSEEnabled = nil
+	}
+	f13, ok := resp.Attributes["VisibilityTimeout"]
+	if ok {
+		ko.Spec.VisibilityTimeout = &f13
+	} else {
+		ko.Spec.VisibilityTimeout = nil
+	}
 
 	// If the QueueName field is empty, populate it with the last part of the queue ARN
 	// This is a workaround for the fact that the QueueName field is required by the
@@ -121,7 +189,7 @@ func (rm *resourceManager) sdkFind(
 	if tags, err := rm.getTags(ctx, r); err != nil {
 		return nil, err
 	} else {
-		ko.Spec.Tags = tags
+		ko.Spec.Tags = FromACKTags(tags)
 	}
 
 	return &resource{ko}, nil
@@ -145,13 +213,13 @@ func (rm *resourceManager) newGetAttributesRequestPayload(
 	res := &svcsdk.GetQueueAttributesInput{}
 
 	{
-		tmpVals := []*string{}
-		tmpVal0 := "All"
-		tmpVals = append(tmpVals, &tmpVal0)
-		res.SetAttributeNames(tmpVals)
+		tmpVals := []svcsdktypes.QueueAttributeName{}
+		tmpVal0 := svcsdktypes.QueueAttributeNameAll
+		tmpVals = append(tmpVals, tmpVal0)
+		res.AttributeNames = tmpVals
 	}
 	if r.ko.Status.QueueURL != nil {
-		res.SetQueueUrl(*r.ko.Status.QueueURL)
+		res.QueueUrl = r.ko.Status.QueueURL
 	}
 
 	return res, nil
@@ -176,7 +244,7 @@ func (rm *resourceManager) sdkCreate(
 
 	var resp *svcsdk.CreateQueueOutput
 	_ = resp
-	resp, err = rm.sdkapi.CreateQueueWithContext(ctx, input)
+	resp, err = rm.sdkapi.CreateQueue(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "CreateQueue", err)
 	if err != nil {
 		return nil, err
@@ -203,60 +271,54 @@ func (rm *resourceManager) newCreateRequestPayload(
 ) (*svcsdk.CreateQueueInput, error) {
 	res := &svcsdk.CreateQueueInput{}
 
-	attrMap := map[string]*string{}
+	attrMap := map[string]string{}
 	if r.ko.Spec.ContentBasedDeduplication != nil {
-		attrMap["ContentBasedDeduplication"] = r.ko.Spec.ContentBasedDeduplication
+		attrMap["ContentBasedDeduplication"] = *r.ko.Spec.ContentBasedDeduplication
 	}
 	if r.ko.Spec.DelaySeconds != nil {
-		attrMap["DelaySeconds"] = r.ko.Spec.DelaySeconds
+		attrMap["DelaySeconds"] = *r.ko.Spec.DelaySeconds
 	}
 	if r.ko.Spec.FIFOQueue != nil {
-		attrMap["FifoQueue"] = r.ko.Spec.FIFOQueue
+		attrMap["FifoQueue"] = *r.ko.Spec.FIFOQueue
 	}
 	if r.ko.Spec.KMSDataKeyReusePeriodSeconds != nil {
-		attrMap["KmsDataKeyReusePeriodSeconds"] = r.ko.Spec.KMSDataKeyReusePeriodSeconds
+		attrMap["KmsDataKeyReusePeriodSeconds"] = *r.ko.Spec.KMSDataKeyReusePeriodSeconds
 	}
 	if r.ko.Spec.KMSMasterKeyID != nil {
-		attrMap["KmsMasterKeyId"] = r.ko.Spec.KMSMasterKeyID
+		attrMap["KmsMasterKeyId"] = *r.ko.Spec.KMSMasterKeyID
 	}
 	if r.ko.Spec.MaximumMessageSize != nil {
-		attrMap["MaximumMessageSize"] = r.ko.Spec.MaximumMessageSize
+		attrMap["MaximumMessageSize"] = *r.ko.Spec.MaximumMessageSize
 	}
 	if r.ko.Spec.MessageRetentionPeriod != nil {
-		attrMap["MessageRetentionPeriod"] = r.ko.Spec.MessageRetentionPeriod
+		attrMap["MessageRetentionPeriod"] = *r.ko.Spec.MessageRetentionPeriod
 	}
 	if r.ko.Spec.Policy != nil {
-		attrMap["Policy"] = r.ko.Spec.Policy
+		attrMap["Policy"] = *r.ko.Spec.Policy
 	}
 	if r.ko.Spec.ReceiveMessageWaitTimeSeconds != nil {
-		attrMap["ReceiveMessageWaitTimeSeconds"] = r.ko.Spec.ReceiveMessageWaitTimeSeconds
+		attrMap["ReceiveMessageWaitTimeSeconds"] = *r.ko.Spec.ReceiveMessageWaitTimeSeconds
 	}
 	if r.ko.Spec.RedriveAllowPolicy != nil {
-		attrMap["RedriveAllowPolicy"] = r.ko.Spec.RedriveAllowPolicy
+		attrMap["RedriveAllowPolicy"] = *r.ko.Spec.RedriveAllowPolicy
 	}
 	if r.ko.Spec.RedrivePolicy != nil {
-		attrMap["RedrivePolicy"] = r.ko.Spec.RedrivePolicy
+		attrMap["RedrivePolicy"] = *r.ko.Spec.RedrivePolicy
 	}
 	if r.ko.Spec.SQSManagedSSEEnabled != nil {
-		attrMap["SqsManagedSseEnabled"] = r.ko.Spec.SQSManagedSSEEnabled
+		attrMap["SqsManagedSseEnabled"] = *r.ko.Spec.SQSManagedSSEEnabled
 	}
 	if r.ko.Spec.VisibilityTimeout != nil {
-		attrMap["VisibilityTimeout"] = r.ko.Spec.VisibilityTimeout
+		attrMap["VisibilityTimeout"] = *r.ko.Spec.VisibilityTimeout
 	}
 	if len(attrMap) > 0 {
-		res.SetAttributes(attrMap)
+		res.Attributes = attrMap
 	}
 	if r.ko.Spec.QueueName != nil {
-		res.SetQueueName(*r.ko.Spec.QueueName)
+		res.QueueName = r.ko.Spec.QueueName
 	}
 	if r.ko.Spec.Tags != nil {
-		f2 := map[string]*string{}
-		for f2key, f2valiter := range r.ko.Spec.Tags {
-			var f2val string
-			f2val = *f2valiter
-			f2[f2key] = &f2val
-		}
-		res.SetTags(f2)
+		res.Tags = aws.ToStringMap(r.ko.Spec.Tags)
 	}
 
 	return res, nil
@@ -301,10 +363,11 @@ func (rm *resourceManager) sdkUpdate(
 	// contain any useful information. Instead, below, we'll be returning a
 	// DeepCopy of the supplied desired state, which should be fine because
 	// that desired state has been constructed from a call to GetAttributes...
-	_, respErr := rm.sdkapi.SetQueueAttributesWithContext(ctx, input)
+	_, respErr := rm.sdkapi.SetQueueAttributes(ctx, input)
 	rm.metrics.RecordAPICall("SET_ATTRIBUTES", "SetQueueAttributes", respErr)
 	if respErr != nil {
-		if awsErr, ok := ackerr.AWSError(respErr); ok && awsErr.Code() == "AWS.SimpleQueueService.NonExistentQueue" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "AWS.SimpleQueueService.NonExistentQueue" {
 			// Technically, this means someone deleted the backend resource in
 			// between the time we got a result back from sdkFind() and here...
 			return nil, ackerr.NotFound
@@ -336,51 +399,51 @@ func (rm *resourceManager) newSetAttributesRequestPayload(
 ) (*svcsdk.SetQueueAttributesInput, error) {
 	res := &svcsdk.SetQueueAttributesInput{}
 
-	attrMap := map[string]*string{}
+	attrMap := map[string]string{}
 	if r.ko.Spec.ContentBasedDeduplication != nil {
-		attrMap["ContentBasedDeduplication"] = r.ko.Spec.ContentBasedDeduplication
+		attrMap["ContentBasedDeduplication"] = *r.ko.Spec.ContentBasedDeduplication
 	}
 	if r.ko.Spec.DelaySeconds != nil {
-		attrMap["DelaySeconds"] = r.ko.Spec.DelaySeconds
+		attrMap["DelaySeconds"] = *r.ko.Spec.DelaySeconds
 	}
 	if r.ko.Spec.FIFOQueue != nil {
-		attrMap["FifoQueue"] = r.ko.Spec.FIFOQueue
+		attrMap["FifoQueue"] = *r.ko.Spec.FIFOQueue
 	}
 	if r.ko.Spec.KMSDataKeyReusePeriodSeconds != nil {
-		attrMap["KmsDataKeyReusePeriodSeconds"] = r.ko.Spec.KMSDataKeyReusePeriodSeconds
+		attrMap["KmsDataKeyReusePeriodSeconds"] = *r.ko.Spec.KMSDataKeyReusePeriodSeconds
 	}
 	if r.ko.Spec.KMSMasterKeyID != nil {
-		attrMap["KmsMasterKeyId"] = r.ko.Spec.KMSMasterKeyID
+		attrMap["KmsMasterKeyId"] = *r.ko.Spec.KMSMasterKeyID
 	}
 	if r.ko.Spec.MaximumMessageSize != nil {
-		attrMap["MaximumMessageSize"] = r.ko.Spec.MaximumMessageSize
+		attrMap["MaximumMessageSize"] = *r.ko.Spec.MaximumMessageSize
 	}
 	if r.ko.Spec.MessageRetentionPeriod != nil {
-		attrMap["MessageRetentionPeriod"] = r.ko.Spec.MessageRetentionPeriod
+		attrMap["MessageRetentionPeriod"] = *r.ko.Spec.MessageRetentionPeriod
 	}
 	if r.ko.Spec.Policy != nil {
-		attrMap["Policy"] = r.ko.Spec.Policy
+		attrMap["Policy"] = *r.ko.Spec.Policy
 	}
 	if r.ko.Spec.ReceiveMessageWaitTimeSeconds != nil {
-		attrMap["ReceiveMessageWaitTimeSeconds"] = r.ko.Spec.ReceiveMessageWaitTimeSeconds
+		attrMap["ReceiveMessageWaitTimeSeconds"] = *r.ko.Spec.ReceiveMessageWaitTimeSeconds
 	}
 	if r.ko.Spec.RedriveAllowPolicy != nil {
-		attrMap["RedriveAllowPolicy"] = r.ko.Spec.RedriveAllowPolicy
+		attrMap["RedriveAllowPolicy"] = *r.ko.Spec.RedriveAllowPolicy
 	}
 	if r.ko.Spec.RedrivePolicy != nil {
-		attrMap["RedrivePolicy"] = r.ko.Spec.RedrivePolicy
+		attrMap["RedrivePolicy"] = *r.ko.Spec.RedrivePolicy
 	}
 	if r.ko.Spec.SQSManagedSSEEnabled != nil {
-		attrMap["SqsManagedSseEnabled"] = r.ko.Spec.SQSManagedSSEEnabled
+		attrMap["SqsManagedSseEnabled"] = *r.ko.Spec.SQSManagedSSEEnabled
 	}
 	if r.ko.Spec.VisibilityTimeout != nil {
-		attrMap["VisibilityTimeout"] = r.ko.Spec.VisibilityTimeout
+		attrMap["VisibilityTimeout"] = *r.ko.Spec.VisibilityTimeout
 	}
 	if len(attrMap) > 0 {
-		res.SetAttributes(attrMap)
+		res.Attributes = attrMap
 	}
 	if r.ko.Status.QueueURL != nil {
-		res.SetQueueUrl(*r.ko.Status.QueueURL)
+		res.QueueUrl = r.ko.Status.QueueURL
 	}
 
 	return res, nil
@@ -402,7 +465,7 @@ func (rm *resourceManager) sdkDelete(
 	}
 	var resp *svcsdk.DeleteQueueOutput
 	_ = resp
-	resp, err = rm.sdkapi.DeleteQueueWithContext(ctx, input)
+	resp, err = rm.sdkapi.DeleteQueue(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteQueue", err)
 	return nil, err
 }
@@ -415,7 +478,7 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	res := &svcsdk.DeleteQueueInput{}
 
 	if r.ko.Status.QueueURL != nil {
-		res.SetQueueUrl(*r.ko.Status.QueueURL)
+		res.QueueUrl = r.ko.Status.QueueURL
 	}
 
 	return res, nil
