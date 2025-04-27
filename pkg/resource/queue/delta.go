@@ -42,6 +42,7 @@ func newResourceDelta(
 		delta.Add("", a, b)
 		return delta
 	}
+	customPreCompare(delta, a, b)
 
 	if ackcompare.HasNilDifference(a.ko.Spec.ContentBasedDeduplication, b.ko.Spec.ContentBasedDeduplication) {
 		delta.Add("Spec.ContentBasedDeduplication", a.ko.Spec.ContentBasedDeduplication, b.ko.Spec.ContentBasedDeduplication)
@@ -95,13 +96,6 @@ func newResourceDelta(
 			delta.Add("Spec.MessageRetentionPeriod", a.ko.Spec.MessageRetentionPeriod, b.ko.Spec.MessageRetentionPeriod)
 		}
 	}
-	if ackcompare.HasNilDifference(a.ko.Spec.Policy, b.ko.Spec.Policy) {
-		delta.Add("Spec.Policy", a.ko.Spec.Policy, b.ko.Spec.Policy)
-	} else if a.ko.Spec.Policy != nil && b.ko.Spec.Policy != nil {
-		if *a.ko.Spec.Policy != *b.ko.Spec.Policy {
-			delta.Add("Spec.Policy", a.ko.Spec.Policy, b.ko.Spec.Policy)
-		}
-	}
 	if !reflect.DeepEqual(a.ko.Spec.PolicyRef, b.ko.Spec.PolicyRef) {
 		delta.Add("Spec.PolicyRef", a.ko.Spec.PolicyRef, b.ko.Spec.PolicyRef)
 	}
@@ -124,13 +118,6 @@ func newResourceDelta(
 	} else if a.ko.Spec.RedriveAllowPolicy != nil && b.ko.Spec.RedriveAllowPolicy != nil {
 		if *a.ko.Spec.RedriveAllowPolicy != *b.ko.Spec.RedriveAllowPolicy {
 			delta.Add("Spec.RedriveAllowPolicy", a.ko.Spec.RedriveAllowPolicy, b.ko.Spec.RedriveAllowPolicy)
-		}
-	}
-	if ackcompare.HasNilDifference(a.ko.Spec.RedrivePolicy, b.ko.Spec.RedrivePolicy) {
-		delta.Add("Spec.RedrivePolicy", a.ko.Spec.RedrivePolicy, b.ko.Spec.RedrivePolicy)
-	} else if a.ko.Spec.RedrivePolicy != nil && b.ko.Spec.RedrivePolicy != nil {
-		if *a.ko.Spec.RedrivePolicy != *b.ko.Spec.RedrivePolicy {
-			delta.Add("Spec.RedrivePolicy", a.ko.Spec.RedrivePolicy, b.ko.Spec.RedrivePolicy)
 		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.SQSManagedSSEEnabled, b.ko.Spec.SQSManagedSSEEnabled) {

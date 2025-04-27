@@ -12,6 +12,8 @@ resources:
             values:
               - All
     hooks:
+      delta_pre_compare:
+        code: customPreCompare(delta, a, b)
       sdk_get_attributes_pre_set_output:
         template_path: hooks/queue/sdk_get_attributes_pre_set_output.go.tpl
       sdk_get_attributes_post_set_output:
@@ -75,6 +77,8 @@ resources:
           service_name: iam
           resource: Policy
           path: Spec.PolicyDocument
+        compare:
+          is_ignored: true
       ReceiveMessageWaitTimeSeconds:
         is_attribute: true
         type: string
@@ -92,6 +96,8 @@ resources:
       RedrivePolicy:
         is_attribute: true
         type: string
+        compare:
+          is_ignored: true
       RedriveAllowPolicy:
         is_attribute: true
         type: string

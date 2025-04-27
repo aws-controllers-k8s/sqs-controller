@@ -13,6 +13,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.37.10
 	github.com/aws/smithy-go v1.22.2
 	github.com/go-logr/logr v1.4.2
+	github.com/micahhausler/aws-iam-policy v0.4.2
 	github.com/spf13/pflag v1.0.5
 	k8s.io/api v0.32.1
 	k8s.io/apimachinery v0.32.1
