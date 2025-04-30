@@ -1,3 +1,16 @@
+// Copyright Amazon.com Inc. or its affiliates. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License"). You may
+// not use this file except in compliance with the License. A copy of the
+// License is located at
+//
+//     http://aws.amazon.com/apache2.0/
+//
+// or in the "license" file accompanying this file. This file is distributed
+// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+// express or implied. See the License for the specific language governing
+// permissions and limitations under the License.
+
 package queue
 
 import (
@@ -86,10 +99,7 @@ func TestComparePolicy(t *testing.T) {
 
 			comparePolicy(delta, resA, resB)
 
-			diffCount := 0
-			if delta.Differences != nil {
-				diffCount = len(delta.Differences)
-			}
+			diffCount := len(delta.Differences)
 
 			if tt.expectDiff {
 				if diffCount != 1 {
@@ -184,11 +194,8 @@ func TestCompareRedrivePolicy(t *testing.T) {
 			resB := &resource{ko: &svcapitypes.Queue{Spec: svcapitypes.QueueSpec{RedrivePolicy: tt.policyB}}}
 
 			compareRedrivePolicy(delta, resA, resB)
-
-			diffCount := 0
-			if delta.Differences != nil {
-				diffCount = len(delta.Differences)
-			}
+			
+			diffCount := len(delta.Differences)
 
 			if tt.expectDiff {
 				if diffCount != 1 {
