@@ -42,51 +42,51 @@ func TestComparePolicy(t *testing.T) {
 	invalidJSON := `{"Version": "2012-10-17", "Statement": [`
 
 	tests := []struct {
-		name      string
-		policyA   *string
-		policyB   *string
+		name       string
+		policyA    *string
+		policyB    *string
 		expectDiff bool
 	}{
 		{
-			name:      "both nil",
-			policyA:   nil,
-			policyB:   nil,
+			name:       "both nil",
+			policyA:    nil,
+			policyB:    nil,
 			expectDiff: false,
 		},
 		{
-			name:      "a nil, b not nil",
-			policyA:   nil,
-			policyB:   strPtr(basePolicyJSON),
+			name:       "a nil, b not nil",
+			policyA:    nil,
+			policyB:    strPtr(basePolicyJSON),
 			expectDiff: true,
 		},
 		{
-			name:      "both equal pointers",
-			policyA:   strPtr(basePolicyJSON),
-			policyB:   strPtr(basePolicyJSON),
+			name:       "both equal pointers",
+			policyA:    strPtr(basePolicyJSON),
+			policyB:    strPtr(basePolicyJSON),
 			expectDiff: false,
 		},
 		{
-			name:      "semantically equivalent",
-			policyA:   strPtr(basePolicyJSON),
-			policyB:   strPtr(equivalentPolicyJSON),
+			name:       "semantically equivalent",
+			policyA:    strPtr(basePolicyJSON),
+			policyB:    strPtr(equivalentPolicyJSON),
 			expectDiff: false,
 		},
 		{
-			name:      "different policies",
-			policyA:   strPtr(basePolicyJSON),
-			policyB:   strPtr(differentPolicyJSON),
+			name:       "different policies",
+			policyA:    strPtr(basePolicyJSON),
+			policyB:    strPtr(differentPolicyJSON),
 			expectDiff: true,
 		},
 		{
-			name:      "a invalid, b valid",
-			policyA:   strPtr(invalidJSON),
-			policyB:   strPtr(basePolicyJSON),
+			name:       "a invalid, b valid",
+			policyA:    strPtr(invalidJSON),
+			policyB:    strPtr(basePolicyJSON),
 			expectDiff: true,
 		},
 		{
-			name:      "both invalid",
-			policyA:   strPtr(invalidJSON),
-			policyB:   strPtr(`{"another": "invalid`),
+			name:       "both invalid",
+			policyA:    strPtr(invalidJSON),
+			policyB:    strPtr(`{"another": "invalid`),
 			expectDiff: true,
 		},
 	}
@@ -138,51 +138,51 @@ func TestCompareRedrivePolicy(t *testing.T) {
 	invalidJSON := `{"deadLetterTargetArn":`
 
 	tests := []struct {
-		name      string
-		policyA   *string
-		policyB   *string
+		name       string
+		policyA    *string
+		policyB    *string
 		expectDiff bool
 	}{
 		{
-			name:      "both nil",
-			policyA:   nil,
-			policyB:   nil,
+			name:       "both nil",
+			policyA:    nil,
+			policyB:    nil,
 			expectDiff: false,
 		},
 		{
-			name:      "a nil, b not nil",
-			policyA:   nil,
-			policyB:   strPtr(basePolicyJSON),
+			name:       "a nil, b not nil",
+			policyA:    nil,
+			policyB:    strPtr(basePolicyJSON),
 			expectDiff: true,
 		},
 		{
-			name:      "both equal pointers",
-			policyA:   strPtr(basePolicyJSON),
-			policyB:   strPtr(basePolicyJSON),
+			name:       "both equal pointers",
+			policyA:    strPtr(basePolicyJSON),
+			policyB:    strPtr(basePolicyJSON),
 			expectDiff: false,
 		},
 		{
-			name:      "semantically equivalent",
-			policyA:   strPtr(basePolicyJSON),
-			policyB:   strPtr(equivalentPolicyJSON),
+			name:       "semantically equivalent",
+			policyA:    strPtr(basePolicyJSON),
+			policyB:    strPtr(equivalentPolicyJSON),
 			expectDiff: false,
 		},
 		{
-			name:      "different policies",
-			policyA:   strPtr(basePolicyJSON),
-			policyB:   strPtr(differentPolicyJSON),
+			name:       "different policies",
+			policyA:    strPtr(basePolicyJSON),
+			policyB:    strPtr(differentPolicyJSON),
 			expectDiff: true,
 		},
 		{
-			name:      "a invalid, b valid",
-			policyA:   strPtr(invalidJSON),
-			policyB:   strPtr(basePolicyJSON),
+			name:       "a invalid, b valid",
+			policyA:    strPtr(invalidJSON),
+			policyB:    strPtr(basePolicyJSON),
 			expectDiff: true,
 		},
 		{
-			name:      "both invalid",
-			policyA:   strPtr(invalidJSON),
-			policyB:   strPtr(`{"another": "invalid`),
+			name:       "both invalid",
+			policyA:    strPtr(invalidJSON),
+			policyB:    strPtr(`{"another": "invalid`),
 			expectDiff: true,
 		},
 	}
@@ -194,7 +194,7 @@ func TestCompareRedrivePolicy(t *testing.T) {
 			resB := &resource{ko: &svcapitypes.Queue{Spec: svcapitypes.QueueSpec{RedrivePolicy: tt.policyB}}}
 
 			compareRedrivePolicy(delta, resA, resB)
-			
+
 			diffCount := len(delta.Differences)
 
 			if tt.expectDiff {
@@ -222,4 +222,4 @@ func TestCompareRedrivePolicy(t *testing.T) {
 			}
 		})
 	}
-} 
+}
