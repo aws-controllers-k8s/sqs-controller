@@ -97,11 +97,11 @@ func (r *resource) SetIdentifiers(identifier *ackv1alpha1.AWSIdentifiers) error 
 
 // PopulateResourceFromAnnotation populates the fields passed from adoption annotation
 func (r *resource) PopulateResourceFromAnnotation(fields map[string]string) error {
-	tmp, ok := fields["queueURL"]
+	primaryKey, ok := fields["queueURL"]
 	if !ok {
 		return ackerrors.NewTerminalError(fmt.Errorf("required field missing: queueURL"))
 	}
-	r.ko.Status.QueueURL = &tmp
+	r.ko.Status.QueueURL = &primaryKey
 
 	return nil
 }
