@@ -43,6 +43,7 @@ rules:
   resources:
   - adoptedresources
   - fieldexports
+  - iamroleselectors
   verbs:
   - create
   - delete
@@ -56,6 +57,7 @@ rules:
   resources:
   - adoptedresources/status
   - fieldexports/status
+  - iamroleselectors/status
   verbs:
   - get
   - patch

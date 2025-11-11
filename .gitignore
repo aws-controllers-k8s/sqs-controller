@@ -2,6 +2,7 @@
 *.swp
 *~
 .idea
+.venv
 /docs/site
 bin
 build
