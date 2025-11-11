@@ -36,13 +36,12 @@ CREATE_WAIT_AFTER_SECONDS = 10
 UPDATE_WAIT_AFTER_SECONDS = 10
 DELETE_WAIT_AFTER_SECONDS = 10
 
-TESTING_NAMESPACE = "carm-testing"
-TESTING_ACCOUNT = "637423602339"
-TESTTING_ASSUME_ROLE = "arn:aws:iam::637423602339:role/ack-carm-role-DO-NOT-DELETE"
+TESTING_NAMESPACE = "irs-testing"
+TESTING_ASSUME_ROLE = "arn:aws:iam::637423602339:role/ack-carm-role-DO-NOT-DELETE"
 
 @service_marker
 @pytest.mark.canary
-class TestCARM:
+class TestIRS:
     def get_queue_url(self, queue_name: str) -> dict:
         sqs_client = boto3.client(
             "sqs",
@@ -70,7 +69,7 @@ class TestCARM:
         create_iam_role_selector(
             TESTING_NAMESPACE,
             "ack-role-selector",
-            TESTTING_ASSUME_ROLE
+            TESTING_ASSUME_ROLE
         )
 
         time.sleep(CREATE_WAIT_AFTER_SECONDS)
@@ -82,7 +81,7 @@ class TestCARM:
         replacements["NAMESPACE"] = TESTING_NAMESPACE
         # Load ECR CR
         resource_data = load_sqs_resource(
-            "queue_carm",
+            "queue_irs",
             additional_replacements=replacements,
         )
         logging.debug(resource_data)
@@ -100,14 +99,11 @@ class TestCARM:
 
         time.sleep(CREATE_WAIT_AFTER_SECONDS)
 
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=5)
+        assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=5)
+        assert k8s.wait_on_condition(ref, "ACK.IAMRoleSelected", "True", wait_periods=5)
 
         # Check SQS queue exists
         resp = self.get_queue_url(resource_name)
-        print(os.environ["CARM_AWS_ACCESS_KEY_ID"])
-        print(os.environ["CARM_AWS_SECRET_ACCESS_KEY"])
-        print(os.environ["CARM_AWS_SESSION_TOKEN"])
-        print(resp)
         assert resp != None
 
         # Delete k8s resource

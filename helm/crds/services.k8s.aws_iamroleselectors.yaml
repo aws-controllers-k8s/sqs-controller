@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.16.2
+    controller-gen.kubebuilder.io/version: v0.19.0
   name: iamroleselectors.services.k8s.aws
 spec:
   group: services.k8s.aws
@@ -12,7 +12,7 @@ spec:
     listKind: IAMRoleSelectorList
     plural: iamroleselectors
     singular: iamroleselector
-  scope: Namespaced
+  scope: Cluster
   versions:
   - name: v1alpha1
     schema:
@@ -40,6 +40,9 @@ spec:
             properties:
               arn:
                 type: string
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               namespaceSelector:
                 description: IAMRoleSelectorSpec defines the desired state of IAMRoleSelector
                 properties:
@@ -53,18 +56,26 @@ spec:
                     required:
                     - matchLabels
                     type: object
-                  name:
+                  names:
                     items:
                       type: string
                     type: array
                 required:
-                - name
+                - names
                 type: object
               resourceTypeSelector:
                 items:
-                  description: |-
-                    GroupVersionKind unambiguously identifies a kind.  It doesn't anonymously include GroupVersion
-                    to avoid automatic coercion.  It doesn't use a GroupVersion to avoid custom marshalling
+                  properties:
+                    group:
+                      type: string
+                    kind:
+                      type: string
+                    version:
+                      type: string
+                  required:
+                  - group
+                  - kind
+                  - version
                   type: object
                 type: array
             required:

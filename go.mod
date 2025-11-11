@@ -7,7 +7,7 @@ toolchain go1.24.1
 require (
 	github.com/aws-controllers-k8s/iam-controller v1.1.1
 	github.com/aws-controllers-k8s/kms-controller v1.0.2
-	github.com/aws-controllers-k8s/runtime v0.52.0
+	github.com/aws-controllers-k8s/runtime v0.53.1
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/aws/aws-sdk-go-v2 v1.34.0
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.37.10
@@ -91,5 +91,3 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.2 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
-
-replace github.com/aws-controllers-k8s/runtime => github.com/a-hilaly/ack-runtime v0.29.1-0.20251111191701-8066e43597d5

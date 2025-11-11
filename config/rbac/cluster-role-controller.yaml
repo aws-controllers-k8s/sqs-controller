@@ -41,7 +41,6 @@ rules:
 - apiGroups:
   - services.k8s.aws
   resources:
-  - adoptedresources
   - fieldexports
   - iamroleselectors
   verbs:
@@ -55,7 +54,6 @@ rules:
 - apiGroups:
   - services.k8s.aws
   resources:
-  - adoptedresources/status
   - fieldexports/status
   - iamroleselectors/status
   verbs:
