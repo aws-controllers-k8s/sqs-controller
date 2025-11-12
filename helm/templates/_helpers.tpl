@@ -88,8 +88,8 @@ rules:
 - apiGroups:
   - services.k8s.aws
   resources:
-  - adoptedresources
   - fieldexports
+  - iamroleselectors
   verbs:
   - create
   - delete
@@ -101,8 +101,8 @@ rules:
 - apiGroups:
   - services.k8s.aws
   resources:
-  - adoptedresources/status
   - fieldexports/status
+  - iamroleselectors/status
   verbs:
   - get
   - patch
