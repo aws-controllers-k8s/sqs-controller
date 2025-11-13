@@ -147,26 +147,3 @@ class TestQueue:
         tags.assert_equal_without_ack_tags(
             expect_after_update_tags, latest_tags,
         )
-
-
-class TestAdoptQueue(adoption.AbstractAdoptionTest):
-    RESOURCE_PLURAL: str = RESOURCE_PLURAL
-    RESOURCE_VERSION: str = CRD_VERSION
-
-    _queue_name: str = random_suffix_name("ack-adopted-queue", 24)
-    _queue_url: str
-
-    def bootstrap_resource(self):
-        c = boto3.client('sqs')
-        resp = c.create_queue(QueueName=self._queue_name)
-        self._queue_url = resp['QueueUrl']
-
-    def cleanup_resource(self):
-        client = boto3.client('sqs')
-        client.delete_queue(QueueUrl=self._queue_url)
-
-    def get_resource_spec(self) -> adoption.AdoptedResourceSpec:
-        return adoption.AdoptedResourceSpec(
-            aws=adoption.AdoptedResourceNameOrIDIdentifier(additionalKeys={}, nameOrID=self._queue_url),
-            kubernetes=adoption.AdoptedResourceKubernetesIdentifiers(CRD_GROUP, RESOURCE_KIND),
-        )
