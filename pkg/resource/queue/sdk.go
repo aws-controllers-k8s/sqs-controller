@@ -358,6 +358,10 @@ func (rm *resourceManager) sdkUpdate(
 	if err != nil {
 		return nil, err
 	}
+	// ignore updates if attributes are not defined.
+	if len(input.Attributes) == 0 {
+		return &resource{desired.ko.DeepCopy()}, nil
+	}
 
 	// NOTE(jaypipes): SetAttributes calls return a response but they don't
 	// contain any useful information. Instead, below, we'll be returning a
