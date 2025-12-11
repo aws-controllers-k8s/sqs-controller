@@ -20,6 +20,8 @@ resources:
         template_path: hooks/queue/sdk_get_attributes_post_set_output.go.tpl
       sdk_update_pre_build_request:
         template_path: hooks/queue/sdk_update_pre_build_request.go.tpl
+      sdk_update_post_build_request:
+        template_path: hooks/queue/sdk_update_post_build_request.go.tpl
     print:
       add_age_column: true
       add_synced_column: true
