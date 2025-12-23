@@ -4,6 +4,11 @@ resources:
       errors:
         404:
           code: AWS.SimpleQueueService.NonExistentQueue
+      terminal_codes:
+      - InvalidAttributeName
+      - InvalidAttributeValue
+      - InvalidParameterValue
+      - InvalidParameterCombination
     unpack_attributes_map:
       set_attributes_single_attribute: false
       get_attributes_input:
