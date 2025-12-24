@@ -23,8 +23,10 @@ import (
 // QueueSpec defines the desired state of Queue.
 type QueueSpec struct {
 	ContentBasedDeduplication    *string                                  `json:"contentBasedDeduplication,omitempty"`
+	DeduplicationScope           *string                                  `json:"deduplicationScope,omitempty"`
 	DelaySeconds                 *string                                  `json:"delaySeconds,omitempty"`
 	FIFOQueue                    *string                                  `json:"fifoQueue,omitempty"`
+	FIFOThroughputLimit          *string                                  `json:"fifoThroughputLimit,omitempty"`
 	KMSDataKeyReusePeriodSeconds *string                                  `json:"kmsDataKeyReusePeriodSeconds,omitempty"`
 	KMSMasterKeyID               *string                                  `json:"kmsMasterKeyID,omitempty"`
 	KMSMasterKeyRef              *ackv1alpha1.AWSResourceReferenceWrapper `json:"kmsMasterKeyRef,omitempty"`
