@@ -95,45 +95,57 @@ func (rm *resourceManager) sdkFind(
 	} else {
 		ko.Spec.ContentBasedDeduplication = nil
 	}
-	f1, ok := resp.Attributes["DelaySeconds"]
+	f1, ok := resp.Attributes["DeduplicationScope"]
 	if ok {
-		ko.Spec.DelaySeconds = &f1
+		ko.Spec.DeduplicationScope = &f1
+	} else {
+		ko.Spec.DeduplicationScope = nil
+	}
+	f2, ok := resp.Attributes["DelaySeconds"]
+	if ok {
+		ko.Spec.DelaySeconds = &f2
 	} else {
 		ko.Spec.DelaySeconds = nil
 	}
-	f2, ok := resp.Attributes["FifoQueue"]
+	f3, ok := resp.Attributes["FifoQueue"]
 	if ok {
-		ko.Spec.FIFOQueue = &f2
+		ko.Spec.FIFOQueue = &f3
 	} else {
 		ko.Spec.FIFOQueue = nil
 	}
-	f3, ok := resp.Attributes["KmsDataKeyReusePeriodSeconds"]
+	f4, ok := resp.Attributes["FifoThroughputLimit"]
 	if ok {
-		ko.Spec.KMSDataKeyReusePeriodSeconds = &f3
+		ko.Spec.FIFOThroughputLimit = &f4
+	} else {
+		ko.Spec.FIFOThroughputLimit = nil
+	}
+	f5, ok := resp.Attributes["KmsDataKeyReusePeriodSeconds"]
+	if ok {
+		ko.Spec.KMSDataKeyReusePeriodSeconds = &f5
 	} else {
 		ko.Spec.KMSDataKeyReusePeriodSeconds = nil
 	}
-	f4, ok := resp.Attributes["KmsMasterKeyId"]
+	f6, ok := resp.Attributes["KmsMasterKeyId"]
 	if ok {
-		ko.Spec.KMSMasterKeyID = &f4
+		ko.Spec.KMSMasterKeyID = &f6
 	} else {
 		ko.Spec.KMSMasterKeyID = nil
 	}
-	f5, ok := resp.Attributes["MaximumMessageSize"]
+	f7, ok := resp.Attributes["MaximumMessageSize"]
 	if ok {
-		ko.Spec.MaximumMessageSize = &f5
+		ko.Spec.MaximumMessageSize = &f7
 	} else {
 		ko.Spec.MaximumMessageSize = nil
 	}
-	f6, ok := resp.Attributes["MessageRetentionPeriod"]
+	f8, ok := resp.Attributes["MessageRetentionPeriod"]
 	if ok {
-		ko.Spec.MessageRetentionPeriod = &f6
+		ko.Spec.MessageRetentionPeriod = &f8
 	} else {
 		ko.Spec.MessageRetentionPeriod = nil
 	}
-	f7, ok := resp.Attributes["Policy"]
+	f9, ok := resp.Attributes["Policy"]
 	if ok {
-		ko.Spec.Policy = &f7
+		ko.Spec.Policy = &f9
 	} else {
 		ko.Spec.Policy = nil
 	}
@@ -142,33 +154,33 @@ func (rm *resourceManager) sdkFind(
 	}
 	tmpARN := ackv1alpha1.AWSResourceName(resp.Attributes["QueueArn"])
 	ko.Status.ACKResourceMetadata.ARN = &tmpARN
-	f9, ok := resp.Attributes["ReceiveMessageWaitTimeSeconds"]
+	f11, ok := resp.Attributes["ReceiveMessageWaitTimeSeconds"]
 	if ok {
-		ko.Spec.ReceiveMessageWaitTimeSeconds = &f9
+		ko.Spec.ReceiveMessageWaitTimeSeconds = &f11
 	} else {
 		ko.Spec.ReceiveMessageWaitTimeSeconds = nil
 	}
-	f10, ok := resp.Attributes["RedriveAllowPolicy"]
+	f12, ok := resp.Attributes["RedriveAllowPolicy"]
 	if ok {
-		ko.Spec.RedriveAllowPolicy = &f10
+		ko.Spec.RedriveAllowPolicy = &f12
 	} else {
 		ko.Spec.RedriveAllowPolicy = nil
 	}
-	f11, ok := resp.Attributes["RedrivePolicy"]
+	f13, ok := resp.Attributes["RedrivePolicy"]
 	if ok {
-		ko.Spec.RedrivePolicy = &f11
+		ko.Spec.RedrivePolicy = &f13
 	} else {
 		ko.Spec.RedrivePolicy = nil
 	}
-	f12, ok := resp.Attributes["SqsManagedSseEnabled"]
+	f14, ok := resp.Attributes["SqsManagedSseEnabled"]
 	if ok {
-		ko.Spec.SQSManagedSSEEnabled = &f12
+		ko.Spec.SQSManagedSSEEnabled = &f14
 	} else {
 		ko.Spec.SQSManagedSSEEnabled = nil
 	}
-	f13, ok := resp.Attributes["VisibilityTimeout"]
+	f15, ok := resp.Attributes["VisibilityTimeout"]
 	if ok {
-		ko.Spec.VisibilityTimeout = &f13
+		ko.Spec.VisibilityTimeout = &f15
 	} else {
 		ko.Spec.VisibilityTimeout = nil
 	}
@@ -275,11 +287,17 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.ContentBasedDeduplication != nil {
 		attrMap["ContentBasedDeduplication"] = *r.ko.Spec.ContentBasedDeduplication
 	}
+	if r.ko.Spec.DeduplicationScope != nil {
+		attrMap["DeduplicationScope"] = *r.ko.Spec.DeduplicationScope
+	}
 	if r.ko.Spec.DelaySeconds != nil {
 		attrMap["DelaySeconds"] = *r.ko.Spec.DelaySeconds
 	}
 	if r.ko.Spec.FIFOQueue != nil {
 		attrMap["FifoQueue"] = *r.ko.Spec.FIFOQueue
+	}
+	if r.ko.Spec.FIFOThroughputLimit != nil {
+		attrMap["FifoThroughputLimit"] = *r.ko.Spec.FIFOThroughputLimit
 	}
 	if r.ko.Spec.KMSDataKeyReusePeriodSeconds != nil {
 		attrMap["KmsDataKeyReusePeriodSeconds"] = *r.ko.Spec.KMSDataKeyReusePeriodSeconds
@@ -407,11 +425,17 @@ func (rm *resourceManager) newSetAttributesRequestPayload(
 	if r.ko.Spec.ContentBasedDeduplication != nil {
 		attrMap["ContentBasedDeduplication"] = *r.ko.Spec.ContentBasedDeduplication
 	}
+	if r.ko.Spec.DeduplicationScope != nil {
+		attrMap["DeduplicationScope"] = *r.ko.Spec.DeduplicationScope
+	}
 	if r.ko.Spec.DelaySeconds != nil {
 		attrMap["DelaySeconds"] = *r.ko.Spec.DelaySeconds
 	}
 	if r.ko.Spec.FIFOQueue != nil {
 		attrMap["FifoQueue"] = *r.ko.Spec.FIFOQueue
+	}
+	if r.ko.Spec.FIFOThroughputLimit != nil {
+		attrMap["FifoThroughputLimit"] = *r.ko.Spec.FIFOThroughputLimit
 	}
 	if r.ko.Spec.KMSDataKeyReusePeriodSeconds != nil {
 		attrMap["KmsDataKeyReusePeriodSeconds"] = *r.ko.Spec.KMSDataKeyReusePeriodSeconds

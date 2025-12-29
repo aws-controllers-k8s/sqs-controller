@@ -2,6 +2,7 @@
 *.swp
 *~
 .idea
+.vscode
 .venv
 /docs/site
 bin

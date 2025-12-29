@@ -341,6 +341,11 @@ func (in *QueueSpec) DeepCopyInto(out *QueueSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.DeduplicationScope != nil {
+		in, out := &in.DeduplicationScope, &out.DeduplicationScope
+		*out = new(string)
+		**out = **in
+	}
 	if in.DelaySeconds != nil {
 		in, out := &in.DelaySeconds, &out.DelaySeconds
 		*out = new(string)
@@ -348,6 +353,11 @@ func (in *QueueSpec) DeepCopyInto(out *QueueSpec) {
 	}
 	if in.FIFOQueue != nil {
 		in, out := &in.FIFOQueue, &out.FIFOQueue
+		*out = new(string)
+		**out = **in
+	}
+	if in.FIFOThroughputLimit != nil {
+		in, out := &in.FIFOThroughputLimit, &out.FIFOThroughputLimit
 		*out = new(string)
 		**out = **in
 	}

@@ -1,0 +1,10 @@
+apiVersion: sqs.services.k8s.aws/v1alpha1
+kind: Queue
+metadata:
+  name: $QUEUE_NAME
+  namespace: default
+spec:
+  queueName: $QUEUE_NAME
+  fifoQueue: "true"
+  deduplicationScope: "queue"
+  fifoThroughputLimit: "perQueue"

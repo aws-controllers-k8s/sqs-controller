@@ -51,6 +51,13 @@ func newResourceDelta(
 			delta.Add("Spec.ContentBasedDeduplication", a.ko.Spec.ContentBasedDeduplication, b.ko.Spec.ContentBasedDeduplication)
 		}
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.DeduplicationScope, b.ko.Spec.DeduplicationScope) {
+		delta.Add("Spec.DeduplicationScope", a.ko.Spec.DeduplicationScope, b.ko.Spec.DeduplicationScope)
+	} else if a.ko.Spec.DeduplicationScope != nil && b.ko.Spec.DeduplicationScope != nil {
+		if *a.ko.Spec.DeduplicationScope != *b.ko.Spec.DeduplicationScope {
+			delta.Add("Spec.DeduplicationScope", a.ko.Spec.DeduplicationScope, b.ko.Spec.DeduplicationScope)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DelaySeconds, b.ko.Spec.DelaySeconds) {
 		delta.Add("Spec.DelaySeconds", a.ko.Spec.DelaySeconds, b.ko.Spec.DelaySeconds)
 	} else if a.ko.Spec.DelaySeconds != nil && b.ko.Spec.DelaySeconds != nil {
@@ -63,6 +70,13 @@ func newResourceDelta(
 	} else if a.ko.Spec.FIFOQueue != nil && b.ko.Spec.FIFOQueue != nil {
 		if *a.ko.Spec.FIFOQueue != *b.ko.Spec.FIFOQueue {
 			delta.Add("Spec.FIFOQueue", a.ko.Spec.FIFOQueue, b.ko.Spec.FIFOQueue)
+		}
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.FIFOThroughputLimit, b.ko.Spec.FIFOThroughputLimit) {
+		delta.Add("Spec.FIFOThroughputLimit", a.ko.Spec.FIFOThroughputLimit, b.ko.Spec.FIFOThroughputLimit)
+	} else if a.ko.Spec.FIFOThroughputLimit != nil && b.ko.Spec.FIFOThroughputLimit != nil {
+		if *a.ko.Spec.FIFOThroughputLimit != *b.ko.Spec.FIFOThroughputLimit {
+			delta.Add("Spec.FIFOThroughputLimit", a.ko.Spec.FIFOThroughputLimit, b.ko.Spec.FIFOThroughputLimit)
 		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.KMSDataKeyReusePeriodSeconds, b.ko.Spec.KMSDataKeyReusePeriodSeconds) {

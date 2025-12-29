@@ -94,6 +94,12 @@ resources:
         is_attribute: true
         type: string
         late_initialize: {}
+      FifoThroughputLimit:
+        is_attribute: true
+        type: string
+      DeduplicationScope:
+        is_attribute: true
+        type: string
       FifoQueue:
         is_attribute: true
         type: string

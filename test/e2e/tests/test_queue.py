@@ -20,7 +20,7 @@ import logging
 import boto3
 
 from acktest.resources import random_suffix_name
-from acktest.k8s import resource as k8s
+from acktest.k8s import resource as k8s, condition
 from acktest import tags
 from acktest import adoption as adoption
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_sqs_resource
@@ -34,6 +34,41 @@ RESOURCE_PLURAL = "queues"
 CREATE_WAIT_AFTER_SECONDS = 5
 MODIFY_WAIT_AFTER_SECONDS = 10
 DELETE_WAIT_AFTER_SECONDS = 20
+
+@pytest.fixture(scope="module")
+def fifo_queue():
+    resource_name = random_suffix_name("sqs-queue", 24) + ".fifo"
+
+    replacements = REPLACEMENT_VALUES.copy()
+    replacements["QUEUE_NAME"] = resource_name
+
+    # Load Queue CR
+    resource_data = load_sqs_resource(
+        "queue_fifo",
+        additional_replacements=replacements,
+    )
+    logging.debug(resource_data)
+
+    # Create k8s resource
+    ref = k8s.CustomResourceReference(
+        CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+        resource_name, namespace="default",
+    )
+    k8s.create_custom_resource(ref, resource_data)
+    cr = k8s.wait_resource_consumed_by_controller(ref)
+
+    sqsqueue.wait_until_exists(resource_name)
+
+    yield cr, ref
+
+    # Delete k8s resource
+    _, deleted = k8s.delete_custom_resource(
+        ref,
+        period_length=DELETE_WAIT_AFTER_SECONDS,
+    )
+    assert deleted
+
+    sqsqueue.wait_until_deleted(resource_name)
 
 
 @pytest.fixture(scope="module")
@@ -147,3 +182,40 @@ class TestQueue:
         tags.assert_equal_without_ack_tags(
             expect_after_update_tags, latest_tags,
         )
+
+    def test_fifo_crud(self, fifo_queue):
+        res, ref = fifo_queue
+
+        time.sleep(CREATE_WAIT_AFTER_SECONDS)
+        assert k8s.wait_on_condition(ref, condition.CONDITION_TYPE_RESOURCE_SYNCED, "True", wait_periods=5)
+        
+        cr = k8s.get_resource(ref)
+        assert cr is not None
+        assert 'status' in cr
+        assert 'queueURL' in cr['status']
+        queue_url = cr['status']['queueURL']
+
+        latest_attrs = sqsqueue.get_attributes(queue_url)
+        assert 'FifoQueue' in latest_attrs
+        assert latest_attrs['FifoQueue'] == "true"
+        assert 'DeduplicationScope' in latest_attrs
+        assert latest_attrs['DeduplicationScope'] == "queue"
+        assert 'FifoThroughputLimit' in latest_attrs
+        assert latest_attrs['FifoThroughputLimit'] == "perQueue"
+
+        updates = {
+            "spec": {
+                "deduplicationScope": "messageGroup",
+                "fifoThroughputLimit": "perMessageGroupId",
+            },
+        }
+
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+        assert k8s.wait_on_condition(ref, condition.CONDITION_TYPE_RESOURCE_SYNCED, "True", wait_periods=5)
+
+        latest_attrs = sqsqueue.get_attributes(queue_url)
+        assert 'DeduplicationScope' in latest_attrs
+        assert latest_attrs['DeduplicationScope'] == "messageGroup"
+        assert 'FifoThroughputLimit' in latest_attrs
+        assert latest_attrs['FifoThroughputLimit'] == "perMessageGroupId"
