@@ -124,5 +124,4 @@ resources:
         is_immutable: true
         type: string
       QueueUrl:
-        is_readonly: true
         is_primary_key: true
