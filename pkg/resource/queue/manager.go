@@ -50,7 +50,7 @@ var (
 // +kubebuilder:rbac:groups=sqs.services.k8s.aws,resources=queues,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=sqs.services.k8s.aws,resources=queues/status,verbs=get;update;patch
 
-var lateInitializeFieldNames = []string{"DelaySeconds", "MaximumMessageSize", "MessageRetentionPeriod", "ReceiveMessageWaitTimeSeconds", "VisibilityTimeout"}
+var lateInitializeFieldNames = []string{"DelaySeconds", "MaximumMessageSize", "MessageRetentionPeriod", "ReceiveMessageWaitTimeSeconds", "SQSManagedSSEEnabled", "VisibilityTimeout"}
 
 // resourceManager is responsible for providing a consistent way to perform
 // CRUD operations in a backend AWS service API for Book custom resources.
@@ -289,6 +289,9 @@ func (rm *resourceManager) lateInitializeFromReadOneOutput(
 	}
 	if observedKo.Spec.ReceiveMessageWaitTimeSeconds != nil && latestKo.Spec.ReceiveMessageWaitTimeSeconds == nil {
 		latestKo.Spec.ReceiveMessageWaitTimeSeconds = observedKo.Spec.ReceiveMessageWaitTimeSeconds
+	}
+	if observedKo.Spec.SQSManagedSSEEnabled != nil && latestKo.Spec.SQSManagedSSEEnabled == nil {
+		latestKo.Spec.SQSManagedSSEEnabled = observedKo.Spec.SQSManagedSSEEnabled
 	}
 	if observedKo.Spec.VisibilityTimeout != nil && latestKo.Spec.VisibilityTimeout == nil {
 		latestKo.Spec.VisibilityTimeout = observedKo.Spec.VisibilityTimeout
