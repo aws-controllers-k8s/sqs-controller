@@ -109,6 +109,13 @@ func newResourceDelta(
 			delta.Add("Spec.MessageRetentionPeriod", a.ko.Spec.MessageRetentionPeriod, b.ko.Spec.MessageRetentionPeriod)
 		}
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.Policy, b.ko.Spec.Policy) {
+		delta.Add("Spec.Policy", a.ko.Spec.Policy, b.ko.Spec.Policy)
+	} else if a.ko.Spec.Policy != nil && b.ko.Spec.Policy != nil {
+		if equal, err := ackcompare.IAMPolicyDocumentEqual(*a.ko.Spec.Policy, *b.ko.Spec.Policy); err != nil || !equal {
+			delta.Add("Spec.Policy", a.ko.Spec.Policy, b.ko.Spec.Policy)
+		}
+	}
 	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.PolicyRef, b.ko.Spec.PolicyRef) {
 		delta.Add("Spec.PolicyRef", a.ko.Spec.PolicyRef, b.ko.Spec.PolicyRef)
 	}

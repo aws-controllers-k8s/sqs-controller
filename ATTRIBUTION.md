@@ -28,7 +28,6 @@ License version 2.0, we include the full text of the package's License below.
 * `github.com/aws/aws-sdk-go-v2/service/sqs`
 * `github.com/aws/smithy-go`
 * `github.com/go-logr/logr`
-* `github.com/micahhausler/aws-iam-policy`
 * `github.com/spf13/pflag`
 * `k8s.io/api`
 * `k8s.io/apimachinery`
@@ -2181,8 +2180,6 @@ Subdependencies:
 * `github.com/aws/aws-sdk-go-v2/internal/configsources`
 * `github.com/aws/aws-sdk-go-v2/internal/endpoints/v2`
 * `github.com/aws/smithy-go`
-
-
 
 
 

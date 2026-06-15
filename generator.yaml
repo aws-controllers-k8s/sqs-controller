@@ -78,14 +78,13 @@ resources:
         is_attribute: true
         type: string
       Policy:
+        is_iam_policy: true
         is_attribute: true
         type: string
         references:
           service_name: iam
           resource: Policy
           path: Spec.PolicyDocument
-        compare:
-          is_ignored: true
       ReceiveMessageWaitTimeSeconds:
         is_attribute: true
         type: string
