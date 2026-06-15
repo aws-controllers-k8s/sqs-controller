@@ -1,0 +1,11 @@
+apiVersion: sqs.services.k8s.aws/v1alpha1
+kind: Queue
+metadata:
+  name: $QUEUE_NAME
+spec:
+  queueName: $QUEUE_NAME
+  delaySeconds: "0"
+  policy: |
+    {"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"sns.amazonaws.com"},"Action":["sqs:SendMessage"],"Resource":"$QUEUE_ARN","Condition":{"ArnEquals":{"aws:SourceArn":"$TOPIC_ARN"}}}]}
+  tags:
+    key1: val1

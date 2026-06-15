@@ -14,7 +14,6 @@
 package queue
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -25,7 +24,6 @@ import (
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	svcsdk "github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go/aws/arn"
-	policy "github.com/micahhausler/aws-iam-policy/policy"
 )
 
 // syncTags examines the Tags in the supplied Queue and calls the
@@ -155,39 +153,7 @@ func customPreCompare(
 	a *resource,
 	b *resource,
 ) {
-	comparePolicy(delta, a, b)
 	compareRedrivePolicy(delta, a, b)
-}
-
-// comparePolicy compares the Policy fields of two resources by unmarshalling
-// them into policy.Policy structs and using reflect.DeepEqual.
-func comparePolicy(
-	delta *ackcompare.Delta,
-	a *resource,
-	b *resource,
-) {
-	if a.ko.Spec.Policy == b.ko.Spec.Policy {
-		// both are nil or equal
-		return
-	}
-	if a.ko.Spec.Policy == nil || b.ko.Spec.Policy == nil {
-		// one is nil and the other is not
-		delta.Add("Spec.Policy", a.ko.Spec.Policy, b.ko.Spec.Policy)
-		return
-	}
-	var policyA policy.Policy
-	decoderA := json.NewDecoder(bytes.NewBufferString(*a.ko.Spec.Policy))
-	decoderA.DisallowUnknownFields()
-	errA := decoderA.Decode(&policyA)
-
-	var policyB policy.Policy
-	decoderB := json.NewDecoder(bytes.NewBufferString(*b.ko.Spec.Policy))
-	decoderB.DisallowUnknownFields()
-	errB := decoderB.Decode(&policyB)
-
-	if errA != nil || errB != nil || !reflect.DeepEqual(policyA, policyB) {
-		delta.Add("Spec.Policy", a.ko.Spec.Policy, b.ko.Spec.Policy)
-	}
 }
 
 // compareRedrivePolicy compares the RedrivePolicy fields of two resources by
