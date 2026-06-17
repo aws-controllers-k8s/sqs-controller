@@ -15,12 +15,9 @@ package queue
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"reflect"
 
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
-	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	svcsdk "github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -145,42 +142,4 @@ func (rm *resourceManager) getQueueNameFromARN(tmpARN ackv1alpha1.AWSResourceNam
 		return "", fmt.Errorf("error parsing queue ARN: %s, error: %w", tmpARN, err)
 	}
 	return queueARN.Resource, nil
-}
-
-// customPreCompare is the entry point for custom comparison logic
-func customPreCompare(
-	delta *ackcompare.Delta,
-	a *resource,
-	b *resource,
-) {
-	compareRedrivePolicy(delta, a, b)
-}
-
-// compareRedrivePolicy compares the RedrivePolicy fields of two resources by
-// unmarshalling them into interface{} and using reflect.DeepEqual.
-// since RedrivePolicy is a JSON string, we need to unmarshal it
-// into an interface{} and then compare the two interface{}s.
-func compareRedrivePolicy(
-	delta *ackcompare.Delta,
-	a *resource,
-	b *resource,
-) {
-	if a.ko.Spec.RedrivePolicy == b.ko.Spec.RedrivePolicy {
-		// both are nil or equal
-		return
-	}
-	if a.ko.Spec.RedrivePolicy == nil || b.ko.Spec.RedrivePolicy == nil {
-		// one is nil and the other is not
-		delta.Add("Spec.RedrivePolicy", a.ko.Spec.RedrivePolicy, b.ko.Spec.RedrivePolicy)
-		return
-	}
-	var redriveA interface{}
-	errA := json.Unmarshal([]byte(*a.ko.Spec.RedrivePolicy), &redriveA)
-
-	var redriveB interface{}
-	errB := json.Unmarshal([]byte(*b.ko.Spec.RedrivePolicy), &redriveB)
-
-	if errA != nil || errB != nil || !reflect.DeepEqual(redriveA, redriveB) {
-		delta.Add("Spec.RedrivePolicy", a.ko.Spec.RedrivePolicy, b.ko.Spec.RedrivePolicy)
-	}
 }
