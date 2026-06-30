@@ -75,6 +75,8 @@ resources:
       SqsManagedSseEnabled:
         is_attribute: true
         type: string
+        late_initialize:
+          skip_incomplete_check: {}
       Policy:
         is_iam_policy: true
         is_attribute: true
