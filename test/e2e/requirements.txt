@@ -1,1 +1,1 @@
-acktest @ git+https://github.com/michaelhtm/ack-test-infra.git@a9fe15e9690818d63b4ae4f40b978da860a6d291
+acktest @ git+https://github.com/michaelhtm/ack-test-infra.git@ee58accba9ff98b647f99d1a4c071a08ecbf748f
