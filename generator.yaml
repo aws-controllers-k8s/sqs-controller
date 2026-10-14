@@ -105,6 +105,8 @@ resources:
       ContentBasedDeduplication:
         is_attribute: true
         type: string
+        late_initialize:
+          skip_incomplete_check: {}
       RedrivePolicy:
         is_attribute: true
         is_document: true
