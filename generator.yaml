@@ -17,6 +17,8 @@ resources:
             values:
               - All
     hooks:
+      delta_pre_compare:
+        code: customPreCompare(delta, a, b)
       sdk_get_attributes_pre_set_output:
         template_path: hooks/queue/sdk_get_attributes_pre_set_output.go.tpl
       sdk_get_attributes_post_set_output:
@@ -107,8 +109,9 @@ resources:
         type: string
       RedrivePolicy:
         is_attribute: true
-        is_document: true
         type: string
+        compare:
+          is_ignored: true
       RedriveAllowPolicy:
         is_attribute: true
         is_document: true
