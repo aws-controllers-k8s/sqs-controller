@@ -41,6 +41,7 @@ func newResourceDelta(
 		delta.Add("", a, b)
 		return delta
 	}
+	customPreCompare(delta, a, b)
 
 	if ackcompare.HasNilDifference(a.ko.Spec.ContentBasedDeduplication, b.ko.Spec.ContentBasedDeduplication) {
 		delta.Add("Spec.ContentBasedDeduplication", a.ko.Spec.ContentBasedDeduplication, b.ko.Spec.ContentBasedDeduplication)
@@ -137,13 +138,6 @@ func newResourceDelta(
 	} else if a.ko.Spec.RedriveAllowPolicy != nil && b.ko.Spec.RedriveAllowPolicy != nil {
 		if equal, err := ackcompare.DocumentEqual(*a.ko.Spec.RedriveAllowPolicy, *b.ko.Spec.RedriveAllowPolicy); err != nil || !equal {
 			delta.Add("Spec.RedriveAllowPolicy", a.ko.Spec.RedriveAllowPolicy, b.ko.Spec.RedriveAllowPolicy)
-		}
-	}
-	if ackcompare.HasNilDifference(a.ko.Spec.RedrivePolicy, b.ko.Spec.RedrivePolicy) {
-		delta.Add("Spec.RedrivePolicy", a.ko.Spec.RedrivePolicy, b.ko.Spec.RedrivePolicy)
-	} else if a.ko.Spec.RedrivePolicy != nil && b.ko.Spec.RedrivePolicy != nil {
-		if equal, err := ackcompare.DocumentEqual(*a.ko.Spec.RedrivePolicy, *b.ko.Spec.RedrivePolicy); err != nil || !equal {
-			delta.Add("Spec.RedrivePolicy", a.ko.Spec.RedrivePolicy, b.ko.Spec.RedrivePolicy)
 		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.SQSManagedSSEEnabled, b.ko.Spec.SQSManagedSSEEnabled) {
