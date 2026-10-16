@@ -15,9 +15,12 @@ package queue
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"reflect"
 
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
+	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	svcsdk "github.com/aws/aws-sdk-go-v2/service/sqs"
@@ -142,4 +145,45 @@ func (rm *resourceManager) getQueueNameFromARN(tmpARN ackv1alpha1.AWSResourceNam
 		return "", fmt.Errorf("error parsing queue ARN: %s, error: %w", tmpARN, err)
 	}
 	return queueARN.Resource, nil
+}
+
+func customPreCompare(
+	delta *ackcompare.Delta,
+	a *resource,
+	b *resource,
+) {
+	if ackcompare.HasNilDifference(a.ko.Spec.RedrivePolicy, b.ko.Spec.RedrivePolicy) {
+		delta.Add("Spec.RedrivePolicy", a.ko.Spec.RedrivePolicy, b.ko.Spec.RedrivePolicy)
+	} else if a.ko.Spec.RedrivePolicy != nil && b.ko.Spec.RedrivePolicy != nil {
+		if !redrivePolicyEqual(*a.ko.Spec.RedrivePolicy, *b.ko.Spec.RedrivePolicy) {
+			delta.Add("Spec.RedrivePolicy", a.ko.Spec.RedrivePolicy, b.ko.Spec.RedrivePolicy)
+		}
+	}
+}
+
+// redrivePolicyEqual treats maxReceiveCount "5" and 5 as equal.
+func redrivePolicyEqual(a, b string) bool {
+	if a == b {
+		return true
+	}
+	aDoc, err := normalizeRedrivePolicy(a)
+	if err != nil {
+		return false
+	}
+	bDoc, err := normalizeRedrivePolicy(b)
+	if err != nil {
+		return false
+	}
+	return reflect.DeepEqual(aDoc, bDoc)
+}
+
+func normalizeRedrivePolicy(doc string) (map[string]interface{}, error) {
+	var m map[string]interface{}
+	if err := json.Unmarshal([]byte(doc), &m); err != nil {
+		return nil, err
+	}
+	if v, ok := m["maxReceiveCount"]; ok {
+		m["maxReceiveCount"] = fmt.Sprint(v)
+	}
+	return m, nil
 }
