@@ -96,15 +96,21 @@ resources:
       FifoThroughputLimit:
         is_attribute: true
         type: string
+        late_initialize:
+          skip_incomplete_check: {}
       DeduplicationScope:
         is_attribute: true
         type: string
+        late_initialize:
+          skip_incomplete_check: {}
       FifoQueue:
         is_attribute: true
         type: string
       ContentBasedDeduplication:
         is_attribute: true
         type: string
+        late_initialize:
+          skip_incomplete_check: {}
       RedrivePolicy:
         is_attribute: true
         is_document: true
