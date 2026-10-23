@@ -204,6 +204,13 @@ class TestQueue:
         assert 'FifoThroughputLimit' in latest_attrs
         assert latest_attrs['FifoThroughputLimit'] == "perQueue"
 
+        # The spec leaves contentBasedDeduplication unset; the value SQS reports
+        # for a FIFO queue is late-initialized into the spec instead of driving
+        # a SetQueueAttributes on every resync.
+        assert 'ContentBasedDeduplication' in latest_attrs
+        assert latest_attrs['ContentBasedDeduplication'] == "false"
+        assert cr['spec']['contentBasedDeduplication'] == "false"
+
         updates = {
             "spec": {
                 "deduplicationScope": "messageGroup",

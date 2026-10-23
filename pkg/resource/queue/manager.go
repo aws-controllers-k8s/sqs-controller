@@ -50,7 +50,7 @@ var (
 // +kubebuilder:rbac:groups=sqs.services.k8s.aws,resources=queues,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=sqs.services.k8s.aws,resources=queues/status,verbs=get;update;patch
 
-var lateInitializeFieldNames = []string{"ContentBasedDeduplication", "DelaySeconds", "MaximumMessageSize", "MessageRetentionPeriod", "ReceiveMessageWaitTimeSeconds", "SQSManagedSSEEnabled", "VisibilityTimeout"}
+var lateInitializeFieldNames = []string{"ContentBasedDeduplication", "DeduplicationScope", "DelaySeconds", "FIFOThroughputLimit", "MaximumMessageSize", "MessageRetentionPeriod", "ReceiveMessageWaitTimeSeconds", "SQSManagedSSEEnabled", "VisibilityTimeout"}
 
 // resourceManager is responsible for providing a consistent way to perform
 // CRUD operations in a backend AWS service API for Book custom resources.
@@ -281,8 +281,14 @@ func (rm *resourceManager) lateInitializeFromReadOneOutput(
 	if observedKo.Spec.ContentBasedDeduplication != nil && latestKo.Spec.ContentBasedDeduplication == nil {
 		latestKo.Spec.ContentBasedDeduplication = observedKo.Spec.ContentBasedDeduplication
 	}
+	if observedKo.Spec.DeduplicationScope != nil && latestKo.Spec.DeduplicationScope == nil {
+		latestKo.Spec.DeduplicationScope = observedKo.Spec.DeduplicationScope
+	}
 	if observedKo.Spec.DelaySeconds != nil && latestKo.Spec.DelaySeconds == nil {
 		latestKo.Spec.DelaySeconds = observedKo.Spec.DelaySeconds
+	}
+	if observedKo.Spec.FIFOThroughputLimit != nil && latestKo.Spec.FIFOThroughputLimit == nil {
+		latestKo.Spec.FIFOThroughputLimit = observedKo.Spec.FIFOThroughputLimit
 	}
 	if observedKo.Spec.MaximumMessageSize != nil && latestKo.Spec.MaximumMessageSize == nil {
 		latestKo.Spec.MaximumMessageSize = observedKo.Spec.MaximumMessageSize
