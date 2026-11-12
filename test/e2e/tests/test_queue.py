@@ -73,6 +73,18 @@ def fifo_queue():
 
 
 @pytest.fixture(scope="module")
+def dead_letter_queue():
+    c = boto3.client('sqs')
+    queue_name = random_suffix_name("sqs-dlq", 24)
+    queue_url = c.create_queue(QueueName=queue_name)['QueueUrl']
+    queue_arn = sqsqueue.get_attributes(queue_url)['QueueArn']
+
+    yield queue_arn
+
+    c.delete_queue(QueueUrl=queue_url)
+
+
+@pytest.fixture(scope="module")
 def simple_queue():
     resource_name = random_suffix_name("sqs-queue", 24)
 
@@ -114,7 +126,7 @@ def simple_queue():
 @service_marker
 @pytest.mark.canary
 class TestQueue:
-    def test_crud(self, simple_queue):
+    def test_crud(self, simple_queue, dead_letter_queue):
         res, ref = simple_queue
 
         time.sleep(CREATE_WAIT_AFTER_SECONDS)
@@ -151,6 +163,23 @@ class TestQueue:
         assert 'DelaySeconds' in latest_attrs
         assert latest_attrs['DelaySeconds'] == new_delay
         assert latest_attrs['RedriveAllowPolicy'] == redrive_policy
+
+        updates = {
+            "spec": {
+                "redrivePolicy": json.dumps({
+                    "deadLetterTargetArn": dead_letter_queue,
+                    "maxReceiveCount": "5",
+                }),
+            },
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+        assert k8s.wait_on_condition(ref, condition.CONDITION_TYPE_RESOURCE_SYNCED, "True", wait_periods=5)
+
+        latest_attrs = sqsqueue.get_attributes(queue_url)
+        latest_redrive_policy = json.loads(latest_attrs['RedrivePolicy'])
+        assert latest_redrive_policy['deadLetterTargetArn'] == dead_letter_queue
+        assert int(latest_redrive_policy['maxReceiveCount']) == 5
 
         # Test updating tags...
         assert 'tags' in cr['spec']
